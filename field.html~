@@ -1,0 +1,13 @@
+<html><head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+<script src="mtg-engine.js"></script>
+<link rel="stylesheet" type="" href="field.css"></link>
+</head>
+    <body>
+        <ul id="actions"></ul>
+        <div id="steps">
+        </div>
+        <div id="zones">
+        </div>
+    </body>
+</html>
