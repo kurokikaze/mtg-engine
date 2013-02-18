@@ -46,6 +46,10 @@ function asyncLoop(iterations, func, callback) {
 }
 
 // Classes
+
+/*
+ * Player. There can be more than two
+ */
 var player = function(name) {
     var that = this;
     this.getName = function() { return name; };
