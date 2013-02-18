@@ -175,7 +175,7 @@ var zone = function(name, ordered, hidden) {
     var that = this;
     $('div#zones').append(element);
     this.place = function(card, mode) {
-        switch (mode) {            
+        switch (mode) {
             case 'bottom':
                 that.contents.push(card);
                 break;
@@ -193,6 +193,10 @@ var zone = function(name, ordered, hidden) {
     return this;
 };
 
+zone.prototype.getName = function() {
+    return this.name;
+}
+
 zone.prototype.setOwner = function(owner) {
     this.owner = owner;   
 }
@@ -209,8 +213,9 @@ var card = function(img, name, type) {
         library.place(that, mode);
     };
     
-    this.goBattlefield = function(tapped) {
-        if (tapped) {
+    this.goBattlefield = function() {
+        this.trigger('etb');
+        if (!this.is_land()) {
             this.tapped = true;
         }
         location = 'battlefield';
@@ -281,25 +286,59 @@ var turn = function() {
 };
 
 var mtg_searcher = function() {
+    var set = [];
     // returns player
     this.current_player = function() {
         return players[current_player];
+    };
+    
+    this.zone = function(name) {
+        set = [];
+        for (var zone_id in zones) {
+            var zone = zones[zone_id];
+            if (name == '' || zone.getName() == name) {
+                set.push[zone];
+            }
+        }
+        
+        return this;
+    };
+    
+    this.owner = function(player_id) {
+        var new_set = [];
+        for (var zone_id in set) {
+            if (set[zone_id].owner == player_id) {
+                new_set.push(set[zone_id]);
+            }
+        }
+        
+        set = new_set;
+        return this;
+    };
+    
+    this.eq = function(num) {
+        return set[num];
     }
 };
 
 window.mtg = new mtg_searcher;
 
+window.zones = [];
 // mtg.current_player().draw();
 
 $(document).ready(function() {
 	// Create zones
 	var library = new zone('library', true, true);
 	players[0].setLibrary(library);
+        window.zones.push(library);
 	var hand = new zone('hand', false, true);
 	players[0].setHand(hand);
+        window.zones.push(hand);
 	var graveyard = new zone('graveyard', true, false);
 	players[0].setGraveyard(graveyard);
+        window.zones.push(graveyard);
 	var battlefield = new zone('battlefield', false, false);
+        window.zones.push(battlefield);
 	var exile = [];
 	
 	steps.push(new step('Untap'));
