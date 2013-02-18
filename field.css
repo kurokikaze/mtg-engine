@@ -6,7 +6,7 @@
 
 #zones {  
     float: right;
-    width: 100%;
+    width: 90%;
     position: relative;
 }
 .zone-hidden {
@@ -25,13 +25,13 @@
 #steps {
     float: left;
     height: 100%;
-    width: 20px;
+    width: 10%;
     position: relative;
     font-size: 11px;
 }
 
 #steps span {
-    display: inline-block;
+    display: block;
 }
 
 #steps span.active {

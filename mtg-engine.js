@@ -70,8 +70,8 @@ player.prototype.draw = function() {
     if (this.library.length == 0) {
         this.flags.drawnFromEmptyLibrary = true;
     } else {
-        var card = this.library.pop();
-        this.hand.push(card);
+        var card = this.library.contents.pop();
+        this.hand.place(card);
         this.trigger('draw');
     }
     return true;
@@ -236,6 +236,7 @@ var step = function(name) {
 
 step.prototype.addAction = function(action) {
     this.mandate_actions.push(action);
+    return this;
 }
 
 var steps = [];
@@ -269,6 +270,16 @@ var turn = function() {
 	
 };
 
+var mtg_searcher = function() {
+    // returns player
+    this.current_player = function() {
+        return players[current_player];
+    }
+};
+
+window.mtg = new mtg_searcher;
+
+// mtg.current_player().draw();
 
 $(document).ready(function() {
 	// Create zones
@@ -283,7 +294,7 @@ $(document).ready(function() {
 	
 	steps.push(new step('Untap'));
 	steps.push(new step('Upkeep'));
-	steps.push(new step('Draw'));
+	steps.push(new step('Draw').addAction(function() { mtg.current_player().draw();}));
 	steps.push(new step('Precombat Main'));
 	steps.push(new step('Beginning of Combat'));
 	steps.push(new step('Declare Attackers'));
