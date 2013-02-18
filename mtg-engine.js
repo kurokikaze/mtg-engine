@@ -164,6 +164,7 @@ players.push(new ai_player());
 
 var zone = function(name, ordered, hidden) {
     var element = $('<div/>').attr('id', name + '_zone').addClass('zone');
+    this.name = name;
     this.owner = false;
     element.append($('<h4/>').text(name).addClass('zoneName'));
     if (ordered) {
@@ -292,23 +293,29 @@ var mtg_searcher = function() {
         return players[current_player];
     };
     
+    // Filter zones by name
     this.zone = function(name) {
         set = [];
-        for (var zone_id in zones) {
-            var zone = zones[zone_id];
-            if (name == '' || zone.getName() == name) {
-                set.push[zone];
+        for (var zone_id in window.zones) {
+            if (window.zones.hasOwnProperty(zone_id)) {
+                var zone = window.zones[zone_id];
+                if (name == '' || zone.getName() == name) {
+                    set.push(zone);
+                }
             }
         }
         
         return this;
     };
     
+    // Filter zones by owner
     this.owner = function(player_id) {
         var new_set = [];
         for (var zone_id in set) {
-            if (set[zone_id].owner == player_id) {
-                new_set.push(set[zone_id]);
+            if (set.hasOwnProperty(zone_id)) {
+                if (set[zone_id].owner == players[player_id]) {
+                    new_set.push(set[zone_id]);
+                }
             }
         }
         
@@ -318,6 +325,10 @@ var mtg_searcher = function() {
     
     this.eq = function(num) {
         return set[num];
+    }
+    
+    this.length = function() {
+        return set.length;
     }
 };
 
