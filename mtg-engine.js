@@ -92,6 +92,16 @@ player.prototype.setGraveyard = function(graveyard) {
     this.graveyard = graveyard;
 }
 
+// This is clumsy
+player.prototype.addMana = function(color, amount){
+    this.manapool[color] += amount;
+    this.trigger('addMana', color, amount);
+};
+
+player.prototype.hasMana = function(color, amount){
+     return (this.manapool[color] >= amount);
+};
+
 player.prototype.on = function(event, callback) {
     console.log('Registering event ' + event);
     if (!this.handlers[event]) {
@@ -309,6 +319,8 @@ $(document).ready(function() {
 	// Create card and put it in library
 	var newcard = new card('http://media.wizards.com/images/magic/tcg/products/rtr/4f55hkkypu_ru.jpg', 'Слизень из катакомбы', 'Существо &mdash; Слизь');
 	library.place(newcard);
+        var newland = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=225486&type=card', 'Равнина', 'Земля &mdash; Равнина');
+	library.place(newland);
 
 	//Starting first step of first turn
 	turn();

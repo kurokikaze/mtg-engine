@@ -2,6 +2,8 @@
     width: 100px;
     height: 139px;
     background-size:100%;
+    display: inline-block;
+    margin: 3px;
 }
 
 #zones {  
@@ -14,7 +16,7 @@
 }
 
 .zone-hidden .card {
-    background-image: url('http://www.wizards.com/magic/images/mtgcom/fcpics/making/mr224_back.jpg') !important;
+    background-image: url('http://www.wizards.com/magic/images/mtgcom/fcpics/making/mr224_back.jpg');
 }
 
 .zone {
@@ -36,4 +38,8 @@
 
 #steps span.active {
     font-weight: bold;
+}
+
+ul#actions {
+    height: 19px;
 }
