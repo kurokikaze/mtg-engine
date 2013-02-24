@@ -1,0 +1,83 @@
+// Utility functions
+
+var getCoupon = function() {
+	var coupon = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=9769&type=card', 'Ashnod`s Coupon', 'Artifact')
+	return coupon;
+}
+
+// Tests
+
+test('Player object', 8, function() {
+	equal((new player('test')).getName(), 'test', 'Storing and returning name');
+	deepEqual((new player('test')).flags, { 'drawnFromEmptyLibrary':false}, 'Flags are present on creation, DFEL is false')
+	equal((new player('test')).life, 20, 'Player starts at 20 life');
+	var johnny = new player('Johnny');
+	johnny.addMana('R', 2);
+	ok(johnny.hasMana('R', 2), 'Can add/check mana in pool');
+	johnny.addMana('R', 1);
+	ok(johnny.hasMana('R', 3), 'Mana in pool stacks');
+	var spike = new player('Spike');
+	spike.on('test', function() {
+		ok(true, 'Player event is passed through');
+	});
+	spike.trigger('test');
+	// Setting player zones
+	var spike = new player('Spike');
+	var hand = new zone('hand', true, true);
+	spike.setHand(hand);
+	equal(spike.hand.getName(), 'hand', 'Saving zone as hand works');
+	equal(hand.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
+});
+
+test('Zone object', function() {
+	equal((new zone('test', true, true)).getName(), 'test', 'Storing and returning name');
+	var johnny = new player('Johnny');
+	var hand = new zone('hand', true, true);
+	hand.setOwner(johnny);
+	equal(hand.owner.getName(), 'Johnny', 'Setting zone owner works');
+});
+
+// Integration
+
+test('Drawing from library', function() {
+	// Here's our player
+	var johnny = new player('Johnny');
+	// This will be his library
+	var library = new zone('Johnny`s library', true, true);
+	// This will be his hand
+	var hand = new zone('Johnny`s hand', false, true);
+	// This is his only card
+	var our_card = getCoupon();
+	// Put it in the library
+	library.place(our_card);
+	// Give this deck to Johnny
+	johnny.setLibrary(library);
+	// Set his hand (drawn cards go here)
+	johnny.setHand(hand);
+	// Draw a card
+	johnny.draw();
+	// Test that Johnny has drawn our card
+	equal(johnny.hand.contents.length, 1, 'Has a card in hand after drawing');
+	equal(johnny.library.contents.length, 0, 'Has no cards in library after drawing');
+	equal(johnny.hand.contents[0].getName(), 'Ashnod`s Coupon', 'Drawn card is Ashnod`s Coupon');
+	equal(johnny.flags.drawnFromEmptyLibrary, false, 'Johnny is not marked as having drawn card from empty library');
+});
+
+test('Drawing from empty library', function() {
+	// Here's our player
+	var johnny = new player('Johnny');
+	// This will be his library
+	var library = new zone('Johnny`s library', true, true);
+	// This will be his hand
+	var hand = new zone('Johnny`s hand', false, true);
+	// Give empty deck to Johnny
+	johnny.setLibrary(library);
+	// Set his hand (drawn cards go here)
+	johnny.setHand(hand);
+	// Draw a card
+	johnny.draw();
+	// Test that Johnny has drawn our card
+	equal(johnny.hand.contents.length, 0, 'Has no cards in hand after drawing');
+	equal(johnny.library.contents.length, 0, 'Has no cards in library after drawing');
+	equal(johnny.flags.drawnFromEmptyLibrary, true, 'Johnny is marked as having drawn card from empty library');
+});
