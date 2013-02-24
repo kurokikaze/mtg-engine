@@ -161,11 +161,6 @@ var ai_player = function() {
 
 ai_player.prototype = new player;
 
-var players = [];
-
-players.push(new human_player());
-players.push(new ai_player());
-
 var zone = function(name, ordered, hidden) {
     var element = $('<div/>').attr('id', name + '_zone').addClass('zone');
     this.name = name;
@@ -213,6 +208,10 @@ var card = function(img, name, type) {
     this.tapped = false;
     var that = this;
     
+	this.getName = function() {
+		return name;
+	}
+	
     this.goLibrary = function(mode) {
         location = 'library';
         library.place(that, mode);
@@ -232,13 +231,11 @@ var card = function(img, name, type) {
 
 // Turn structure
 
-var current_step = 0;
-var current_player = 0;
-
 var step = function(name) {
     this.name = name;
     this.mandate_actions = [];
     this.element = $('<span/>').attr('id','step_' + this.name.toLowerCase()).text(this.name);
+	console.log('Creating step ' + name);
     $('#steps').append(this.element);
     this.activate = function() {
         // Clear all steps
@@ -259,101 +256,109 @@ step.prototype.addAction = function(action) {
     return this;
 }
 
-var steps = [];
+var engine = function() {
+	var steps = [];
 
-var turn = function() {
-	var end_step = function() {
-        console.log('Turn ended');
-		// Move to the next step
-		current_step = ((current_step + 1) % (steps.length));
-		// If it's a new turn, make next player active
-		if (current_step == 0) {
-			current_player = ((current_player + 1) % (players.length));
-		}
-        console.log('Setting timeout for new turn');
-        setTimeout(function() {
-            console.log('New turn starting');
-            turn();
-        }, 100);
-	}
-	// announce beginning
-    steps[current_step].activate();
-	console.log('Step ' + steps[current_step].name + ' starting, ' + players.length + ' players total');
-	// make necessary actions (via triggers)
-	// give players priority starting from current
-	asyncLoop(players.length, function(loop) {
-        console.log('Trying to give priority to player ' + loop.iteration());
-		var current_player_id = loop.iteration();
-		players[current_player_id].on('pass', loop.next);
-		players[current_player_id].givePriority();
-	}, end_step);
+	var engine_this = this;
 	
-};
+	var current_step = 0;
+	var current_player = 0;
 
-var mtg_searcher = function() {
-    var set = [];
-    // returns player
-    this.current_player = function() {
-        return players[current_player];
-    };
-    
-    // Filter zones by name
-    this.zone = function(name) {
-        set = [];
-        for (var zone_id in window.zones) {
-            if (window.zones.hasOwnProperty(zone_id)) {
-                var zone = window.zones[zone_id];
-                if (name == '' || zone.getName() == name) {
-                    set.push(zone);
-                }
-            }
-        }
-        
-        return this;
-    };
-    
-    // Filter zones by owner
-    this.owner = function(player_id) {
-        var new_set = [];
-        for (var zone_id in set) {
-            if (set.hasOwnProperty(zone_id)) {
-                if (set[zone_id].owner == players[player_id]) {
-                    new_set.push(set[zone_id]);
-                }
-            }
-        }
-        
-        set = new_set;
-        return this;
-    };
-    
-    this.eq = function(num) {
-        return set[num];
-    }
-    
-    this.length = function() {
-        return set.length;
-    }
-};
+	var players = [];
 
-window.mtg = new mtg_searcher;
+	players.push(new human_player());
+	players.push(new ai_player());
+	
+	var turn = function() {
+		var end_step = function() {
+			console.log('Turn ended');
+			// Move to the next step
+			current_step = ((current_step + 1) % (steps.length));
+			// If it's a new turn, make next player active
+			if (current_step == 0) {
+				current_player = ((current_player + 1) % (players.length));
+			}
+			console.log('Setting timeout for new turn');
+			setTimeout(function() {
+				console.log('New turn starting');
+				turn();
+			}, 100);
+		}
+		// announce beginning
+		steps[current_step].activate();
+		console.log('Step ' + steps[current_step].name + ' starting, ' + players.length + ' players total');
+		// make necessary actions (via triggers)
+		// give players priority starting from current
+		asyncLoop(players.length, function(loop) {
+			console.log('Trying to give priority to player ' + loop.iteration());
+			var current_player_id = loop.iteration();
+			players[current_player_id].on('pass', loop.next);
+			players[current_player_id].givePriority();
+		}, end_step);
+	};
 
-window.zones = [];
-// mtg.current_player().draw();
+	var mtg_searcher = function() {
+		var set = [];
+		// returns player
+		this.current_player = function() {
+			return players[current_player];
+		};
+		
+		// Filter zones by name
+		this.zone = function(name) {
+			set = [];
+			for (var zone_id in this.zones) {
+				if (engine_this.zones.hasOwnProperty(zone_id)) {
+					var zone = engine_this.zones[zone_id];
+					if (name == '' || zone.getName() == name) {
+						set.push(zone);
+					}
+				}
+			}
+			
+			return this;
+		};
+		
+		// Filter zones by owner
+		this.owner = function(player_id) {
+			var new_set = [];
+			for (var zone_id in set) {
+				if (set.hasOwnProperty(zone_id)) {
+					if (set[zone_id].owner == players[player_id]) {
+						new_set.push(set[zone_id]);
+					}
+				}
+			}
+			
+			set = new_set;
+			return this;
+		};
+		
+		this.eq = function(num) {
+			return set[num];
+		}
+		
+		this.length = function() {
+			return set.length;
+		}
+	};
 
-$(document).ready(function() {
+	var mtg = this.mtg = new mtg_searcher;
+
+	this.zones = [];
+
 	// Create zones
 	var library = new zone('library', true, true);
 	players[0].setLibrary(library);
-        window.zones.push(library);
+        this.zones.push(library);
 	var hand = new zone('hand', false, true);
 	players[0].setHand(hand);
-        window.zones.push(hand);
+        this.zones.push(hand);
 	var graveyard = new zone('graveyard', true, false);
 	players[0].setGraveyard(graveyard);
-        window.zones.push(graveyard);
+        this.zones.push(graveyard);
 	var battlefield = new zone('battlefield', false, false);
-        window.zones.push(battlefield);
+        this.zones.push(battlefield);
 	var exile = [];
 	
 	steps.push(new step('Untap'));
@@ -377,5 +382,9 @@ $(document).ready(function() {
 	library.place(newland);
 
 	//Starting first step of first turn
-	turn();
-});
+	this.start = function() {
+		turn();	
+	}
+	
+	return this;
+}
