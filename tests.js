@@ -7,7 +7,7 @@ var getCoupon = function() {
 
 // Tests
 
-test('Player object', 8, function() {
+test('Player object', function() {
 	equal((new player('test')).getName(), 'test', 'Storing and returning name');
 	deepEqual((new player('test')).flags, { 'drawnFromEmptyLibrary':false}, 'Flags are present on creation, DFEL is false')
 	equal((new player('test')).life, 20, 'Player starts at 20 life');
@@ -16,17 +16,30 @@ test('Player object', 8, function() {
 	ok(johnny.hasMana('R', 2), 'Can add/check mana in pool');
 	johnny.addMana('R', 1);
 	ok(johnny.hasMana('R', 3), 'Mana in pool stacks');
+	// Setting player zones
+	var spike = new player('Spike');
+	var hand = new zone('test_hand', true, true);
+	spike.setHand(hand);
+	equal(spike.hand.getName(), 'test_hand', 'Saving zone as hand works');
+	equal(hand.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
+	var spike = new player('Spike');
+	var library = new zone('test_library', true, true);
+	spike.setLibrary(library);
+	equal(spike.library.getName(), 'test_library', 'Saving zone as library works');
+	equal(library.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
+	var spike = new player('Spike');
+	var graveyard = new zone('test_graveyard', true, true);
+	spike.setGraveyard(graveyard);
+	equal(spike.graveyard.getName(), 'test_graveyard', 'Saving zone as graveyard works');
+	equal(graveyard.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
+});
+
+test('Player object events', 1, function(){
 	var spike = new player('Spike');
 	spike.on('test', function() {
 		ok(true, 'Player event is passed through');
 	});
 	spike.trigger('test');
-	// Setting player zones
-	var spike = new player('Spike');
-	var hand = new zone('hand', true, true);
-	spike.setHand(hand);
-	equal(spike.hand.getName(), 'hand', 'Saving zone as hand works');
-	equal(hand.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
 });
 
 test('Zone object', function() {
