@@ -55,6 +55,14 @@ var player = function(name) {
     this.getName = function() { return name; };
     this.handlers = {};
     this.life = 20;
+	this.manapool = {
+		'W': 0,
+		'U': 0,
+		'B': 0,
+		'R': 0,
+		'G': 0,
+		'X': 0
+	};
     this.flags = {
         'drawnFromEmptyLibrary' : false
     }
@@ -71,7 +79,7 @@ player.prototype.givePriority = function() {
 
 player.prototype.draw = function() {
     this.trigger('draw-replace');
-    if (this.library.length == 0) {
+    if (this.library.contents.length == 0) {
         this.flags.drawnFromEmptyLibrary = true;
     } else {
         var card = this.library.contents.pop();
