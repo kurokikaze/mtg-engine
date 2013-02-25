@@ -9,7 +9,8 @@ var getCoupon = function() {
 
 test('Player object', function() {
 	equal((new player('test')).getName(), 'test', 'Storing and returning name');
-	deepEqual((new player('test')).flags, { 'drawnFromEmptyLibrary':false}, 'Flags are present on creation, DFEL is false')
+	equal((new player('test')).flags.drawnFromEmptyLibrary, false, 'Flags are present on creation, DFEL is false');
+	equal((new player('test')).flags.won, false, 'Winning flag is present and set to false');
 	equal((new player('test')).life, 20, 'Player starts at 20 life');
 	var johnny = new player('Johnny');
 	johnny.addMana('R', 2);
@@ -93,4 +94,45 @@ test('Drawing from empty library', function() {
 	equal(johnny.hand.contents.length, 0, 'Has no cards in hand after drawing');
 	equal(johnny.library.contents.length, 0, 'Has no cards in library after drawing');
 	equal(johnny.flags.drawnFromEmptyLibrary, true, 'Johnny is marked as having drawn card from empty library');
+});
+
+test('APNAP priority order', 1, function() {
+	var $fixture = $('#qunit-fixture');
+	$fixture.append('<div id="actions"></div>');
+	$fixture.append('<div id="zones"></div>');
+	$fixture.append('<div id="steps"></div>');
+
+	var teststring = '';
+
+	var priority_player = function(phrase) {
+		var that = this;
+		this.givePriority = function() {
+			console.log('Test player got priority');
+			teststring = teststring + phrase;
+			that.trigger('pass');
+		}
+	};
+
+	priority_player.prototype = new player();
+
+	// Here's our player 1
+	var johnny = new priority_player('AP');
+	johnny.on('')
+	// Here's our player 1
+	var timmy = new priority_player('NAP');
+
+	var test_game = new engine();
+	//
+	test_game.on('eop_Untap', function() {
+		// finish the game on the end of turn one phase one
+		test_game.flags.finished = true;
+	});
+
+	test_game.on('finish', function() {
+		equal(teststring, 'APNAP', 'Players are given priority in APNAP order');
+	});
+	test_game.addPlayer(johnny);
+	test_game.addPlayer(timmy);
+
+	test_game.start();
 });
