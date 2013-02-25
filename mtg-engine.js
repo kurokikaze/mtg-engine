@@ -64,7 +64,8 @@ var player = function(name) {
 		'X': 0
 	};
     this.flags = {
-        'drawnFromEmptyLibrary' : false
+        'drawnFromEmptyLibrary' : false,
+	'won' : false
     }
     return this;
 }
@@ -269,28 +270,43 @@ var engine = function() {
 
 	var engine_this = this;
 	
+	this.handlers = [];
+
 	var current_step = 0;
 	var current_player = 0;
 
 	var players = [];
 
-	players.push(new human_player());
-	players.push(new ai_player());
-	
+	this.flags = {};
+
+	// Check state-based actions
+	var check_SBA = function() {
+		for (player_id in players) {
+			if (players[player_id] && players[player_id].flags['won'] == true) {
+				this.flags.finished = true;
+			}
+		}
+	}
+
 	var turn = function() {
 		var end_step = function() {
-			console.log('Turn ended');
-			// Move to the next step
-			current_step = ((current_step + 1) % (steps.length));
-			// If it's a new turn, make next player active
-			if (current_step == 0) {
-				current_player = ((current_player + 1) % (players.length));
+			console.log('Step ended');
+			engine_this.trigger('eop_' + steps[current_step].name);
+			if (!engine_this.flags.finished) {
+				// Move to the next step
+				current_step = ((current_step + 1) % (steps.length));
+				// If it's a new turn, make next player active
+				if (current_step == 0) {
+					current_player = ((current_player + 1) % (players.length));
+				}
+				console.log('Setting timeout for new turn');
+				setTimeout(function() {
+					console.log('New turn starting');
+					turn();
+				}, 100);
+			} else {
+				engine_this.trigger('finish');
 			}
-			console.log('Setting timeout for new turn');
-			setTimeout(function() {
-				console.log('New turn starting');
-				turn();
-			}, 100);
 		}
 		// announce beginning
 		steps[current_step].activate();
@@ -355,16 +371,6 @@ var engine = function() {
 
 	this.zones = [];
 
-	// Create zones
-	var library = new zone('library', true, true);
-	players[0].setLibrary(library);
-        this.zones.push(library);
-	var hand = new zone('hand', false, true);
-	players[0].setHand(hand);
-        this.zones.push(hand);
-	var graveyard = new zone('graveyard', true, false);
-	players[0].setGraveyard(graveyard);
-        this.zones.push(graveyard);
 	var battlefield = new zone('battlefield', false, false);
         this.zones.push(battlefield);
 	var exile = [];
@@ -382,17 +388,56 @@ var engine = function() {
 	steps.push(new step('End'));
 	steps.push(new step('Cleanup'));
 
+	this.addPlayer = function(player) {
+		players.push(player);
+	};
 
-	// Create card and put it in library
-	var newcard = new card('http://media.wizards.com/images/magic/tcg/products/rtr/4f55hkkypu_ru.jpg', 'Слизень из катакомбы', 'Существо &mdash; Слизь');
-	library.place(newcard);
-        var newland = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=225486&type=card', 'Равнина', 'Земля &mdash; Равнина');
-	library.place(newland);
+	this.getPlayers = function() {
+		return players;
+	}
 
 	//Starting first step of first turn
 	this.start = function() {
-		turn();	
+		// This is for playtesting
+		if (players.length == 0) {
+			players.push(new human_player());
+			players.push(new ai_player());
+
+			// Create zones
+			var library = new zone('library', true, true);
+			players[0].setLibrary(library);
+			this.zones.push(library);
+			var hand = new zone('hand', false, true);
+			players[0].setHand(hand);
+			this.zones.push(hand);
+			var graveyard = new zone('graveyard', true, false);
+			players[0].setGraveyard(graveyard);
+			this.zones.push(graveyard);
+
+			// Create card and put it in library
+			var newcard = new card('http://media.wizards.com/images/magic/tcg/products/rtr/4f55hkkypu_ru.jpg', 'Слизень из катакомбы', 'Существо &mdash; Слизь');
+			library.place(newcard);
+			var newland = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=225486&type=card', 'Равнина', 'Земля &mdash; Равнина');
+			library.place(newland);
+
+		}
+		turn();
 	}
 	
 	return this;
+}
+
+engine.prototype.on = function(event, callback) {
+    if (!this.handlers[event]) {
+        this.handlers[event] = [];
+    }
+    this.handlers[event].push(callback);
+}
+
+engine.prototype.trigger = function(event, data) {
+    if (this.handlers[event] && this.handlers[event].length > 0) {
+        for (var handler_id = 0; handler_id < this.handlers[event].length; handler_id++) {
+            this.handlers[event][handler_id].call();
+        }
+    }
 }
