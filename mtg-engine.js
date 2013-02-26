@@ -170,6 +170,67 @@ var ai_player = function() {
 
 ai_player.prototype = new player;
 
+var permanent = function(source_card) {
+	var isToken = false;
+	var representedBy = false;
+	this.tapped = false;
+	
+	this.handlers = {};
+
+	if (source_card instanceof card) {
+		representedBy = source_card;
+	} else { // we're creating a token
+		isToken = true;
+		this.name = source_card.name;
+		this.power = source_card.power;
+		this.toughness = source_card.toughness; 
+	}
+
+	this.getName = function() {
+		if (!isToken) {
+			return representedBy.getName();
+		} else {
+			return this.name;
+		}
+	}
+	return this;
+}
+
+permanent.prototype.isTapped = function() {
+	return this.tapped;
+};
+
+permanent.prototype.tap = function() {
+	if (!this.tapped) {
+		this.tapped = true;
+		this.trigger('tapped');
+	} else {
+		return false; // should throw something
+	}
+};
+
+permanent.prototype.untap = function() {
+	if (this.tapped) {
+		this.tapped = false;
+		this.trigger('untaps');
+	}
+};
+
+permanent.prototype.on = function(event, callback) {
+    if (!this.handlers[event]) {
+        this.handlers[event] = [];
+    }
+    this.handlers[event].push(callback);
+}
+
+permanent.prototype.trigger = function(event, data) {
+    if (this.handlers[event] && this.handlers[event].length > 0) {
+        for (var handler_id = 0; handler_id < this.handlers[event].length; handler_id++) {
+            this.handlers[event][handler_id].call();
+        }
+    }
+}
+
 var zone = function(name, ordered, hidden) {
     var element = $('<div/>').attr('id', name + '_zone').addClass('zone');
     this.name = name;
@@ -227,12 +288,15 @@ var card = function(img, name, type) {
     };
     
     this.goBattlefield = function() {
+	var card_permanent = new permanent(this);
         this.trigger('etb');
         if (!this.is_land()) {
             this.tapped = true;
         }
         location = 'battlefield';
-        battlefield.place(that);
+	// we're placing permanent on the battlefield,
+	// but mark the card as placed there
+        battlefield.place(card_permanent);
     };
     
     return this;
