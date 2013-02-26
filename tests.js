@@ -136,3 +136,22 @@ test('APNAP priority order', 1, function() {
 
 	test_game.start();
 });
+
+test('Permanent object', function() {
+	var our_card = getCoupon();
+	var our_permanent = new permanent(our_card);
+	equal(our_permanent.getName(), 'Ashnod`s Coupon', 'Name of card used as name of permanent');
+	var our_token = new permanent({
+		'name': 'Centaur',
+		'power': 2,
+		'toughness': 2
+	});
+	equal(our_token.getName(), 'Centaur' , 'Name of token is stored and passed correctly.');
+	var our_card = getCoupon();
+	var our_permanent = new permanent(our_card);
+	equal(our_permanent.isTapped(), false, 'Permanent is created untapped');
+	our_permanent.tap();
+	equal(our_permanent.isTapped(), true, 'Permanent can be tapped');
+	our_permanent.untap();
+	equal(our_permanent.isTapped(), false, 'Permanent can be untapped');
+});
