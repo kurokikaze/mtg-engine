@@ -281,9 +281,20 @@ var engine = function() {
 
 	// Check state-based actions
 	var check_SBA = function() {
-		for (player_id in players) {
-			if (players[player_id] && players[player_id].flags['won'] == true) {
-				this.flags.finished = true;
+		for (var player_id in players) {
+			if (players.hasOwnProperty(player_id)) {
+				if (players[player_id].life <= 0) {
+					players[player_id].flags['lost'] = true;
+					engine_this.trigger('player_lost', players[player_id]);
+				}
+			}
+		}
+
+		for (var player_id in players) {
+			if (players.hasOwnProperty(player_id)) {
+				if (players[player_id] && players[player_id].flags['won'] == true) {
+					this.flags.finished = true;
+				}
 			}
 		}
 	}
@@ -316,7 +327,10 @@ var engine = function() {
 		asyncLoop(players.length, function(loop) {
 			console.log('Trying to give priority to player ' + loop.iteration());
 			var current_player_id = loop.iteration();
-			players[current_player_id].on('pass', loop.next);
+			players[current_player_id].on('pass', function() {
+				check_SBA();
+				loop.next();
+			});
 			players[current_player_id].givePriority();
 		}, end_step);
 	};
