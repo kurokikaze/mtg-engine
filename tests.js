@@ -5,6 +5,12 @@ var getCoupon = function() {
 	return coupon;
 }
 
+var getBear = function() {
+	var bear = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=9769&type=card', 'Grizzly Bears', 'Creature');
+	bear.setManaCost({'G':1, 'C':1});
+	return bear;
+}
+
 // Tests
 
 test('Player object', function() {
@@ -33,6 +39,17 @@ test('Player object', function() {
 	spike.setGraveyard(graveyard);
 	equal(spike.graveyard.getName(), 'test_graveyard', 'Saving zone as graveyard works');
 	equal(graveyard.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
+});
+
+test('Card object', function() {
+	var test_card = getBear();
+	equal(test_card.getName(), 'Grizzly Bears', 'Card name is stored and retrieved');
+	equal(test_card.getManaCost().W, 0, 'White mana cost is stored and retrieved');
+	equal(test_card.getManaCost().U, 0, 'Blue mana cost is stored and retrieved');
+	equal(test_card.getManaCost().B, 0, 'Black mana cost is stored and retrieved');
+	equal(test_card.getManaCost().R, 0, 'Red mana cost is stored and retrieved');
+	equal(test_card.getManaCost().G, 1, 'Green mana cost is stored and retrieved');
+	equal(test_card.getManaCost().C, 1, 'Colorless mana cost is stored and retrieved');
 });
 
 test('Player object events', 1, function(){
@@ -138,9 +155,9 @@ test('APNAP priority order', 1, function() {
 });
 
 test('Permanent object', function() {
-	var our_card = getCoupon();
+	var our_card = getBear();
 	var our_permanent = new permanent(our_card);
-	equal(our_permanent.getName(), 'Ashnod`s Coupon', 'Name of card used as name of permanent');
+	equal(our_permanent.getName(), 'Grizzly Bears', 'Name of card used as name of permanent');
 	var our_token = new permanent({
 		'name': 'Centaur',
 		'power': 2,
@@ -154,4 +171,7 @@ test('Permanent object', function() {
 	equal(our_permanent.isTapped(), true, 'Permanent can be tapped');
 	our_permanent.untap();
 	equal(our_permanent.isTapped(), false, 'Permanent can be untapped');
+	var our_card = getBear();
+	var our_permanent = new permanent(our_card);
+	equal(our_permanent.getManaCost().G, 1, 'Card cost is used as permanent cost')
 });
