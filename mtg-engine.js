@@ -1,4 +1,5 @@
 'use strict';
+
 // Utility
 Array.prototype.shuffle = function() {
   var i = this.length, j, tempi, tempj;
@@ -277,10 +278,31 @@ var card = function(img, name, type) {
     this.element = $('<div/>').css('background-image','url("' + img + '")').attr('title', name).addClass('card');
     this.tapped = false;
     var that = this;
+    this.cost = {
+	'W':0,
+	'U':0,
+	'B':0,
+	'R':0,
+	'G':0,
+	'C':0
+    }
     
-	this.getName = function() {
-		return name;
-	}
+    this.setManaCost = function(new_cost) {
+	if (new_cost.W) this.cost.W = new_cost.W;
+	if (new_cost.U) this.cost.U = new_cost.U;
+	if (new_cost.B) this.cost.B = new_cost.B;
+	if (new_cost.R) this.cost.R = new_cost.R;
+	if (new_cost.G) this.cost.G = new_cost.G;
+	if (new_cost.C) this.cost.C = new_cost.C;
+    }
+
+    this.getManaCost = function() {
+	return this.cost;
+    }
+
+    this.getName = function() {
+	return name;
+    }
 	
     this.goLibrary = function(mode) {
         location = 'library';
