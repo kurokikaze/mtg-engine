@@ -1,0 +1,2 @@
+Need some way to register decks in engine
+Actually casting something is a target
