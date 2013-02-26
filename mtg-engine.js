@@ -328,9 +328,9 @@ var engine = function() {
 			console.log('Trying to give priority to player ' + loop.iteration());
 			var current_player_id = loop.iteration();
 			players[current_player_id].on('pass', function() {
-				check_SBA();
 				loop.next();
 			});
+			check_SBA();
 			players[current_player_id].givePriority();
 		}, end_step);
 	};
