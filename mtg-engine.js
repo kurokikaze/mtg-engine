@@ -172,24 +172,24 @@ var ai_player = function() {
 ai_player.prototype = new player;
 
 var permanent = function(source_card) {
-	var isToken = false;
-	var representedBy = false;
+	this.isToken = false;
+	this.representedBy = false;
 	this.tapped = false;
 	
 	this.handlers = {};
 
 	if (source_card instanceof card) {
-		representedBy = source_card;
+		this.representedBy = source_card;
 	} else { // we're creating a token
-		isToken = true;
+		this.isToken = true;
 		this.name = source_card.name;
 		this.power = source_card.power;
 		this.toughness = source_card.toughness; 
 	}
 
 	this.getName = function() {
-		if (!isToken) {
-			return representedBy.getName();
+		if (!this.isToken) {
+			return this.representedBy.getName();
 		} else {
 			return this.name;
 		}
@@ -214,6 +214,21 @@ permanent.prototype.untap = function() {
 	if (this.tapped) {
 		this.tapped = false;
 		this.trigger('untaps');
+	}
+};
+
+permanent.prototype.getManaCost = function() {
+	if (this.isToken) {
+		return {
+			'W':0,
+			'U':0,
+			'B':0,
+			'R':0,
+			'G':0,
+			'C':0
+		}
+	} else {
+		return this.representedBy.getManaCost();
 	}
 };
 
