@@ -39,6 +39,14 @@ test('Player object', function() {
 	spike.setGraveyard(graveyard);
 	equal(spike.graveyard.getName(), 'test_graveyard', 'Saving zone as graveyard works');
 	equal(graveyard.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
+	var johnny = new player('Johnny');
+	var bear = getBear();
+	bear.setOwner(johnny);
+	equal(johnny.owns(bear), true, 'Checking ownership on own cards work');
+	var spike = new player('Spike');
+	var other_bear = getBear();
+	other_bear.setOwner(spike);
+	equal(johnny.owns(other_bear), false, 'Checking ownership on another player cards work')
 });
 
 test('Card object', function() {
@@ -50,6 +58,10 @@ test('Card object', function() {
 	equal(test_card.getManaCost().R, 0, 'Red mana cost is stored and retrieved');
 	equal(test_card.getManaCost().G, 1, 'Green mana cost is stored and retrieved');
 	equal(test_card.getManaCost().C, 1, 'Colorless mana cost is stored and retrieved');
+	var test_card = getBear();
+	var johnny = new player('Johnny');
+	test_card.setOwner(johnny);
+	equal(test_card.getOwner(), johnny, 'Owner is stored and retrieved correctly');
 });
 
 test('Player object events', 1, function(){

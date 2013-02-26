@@ -126,12 +126,16 @@ player.prototype.on = function(event, callback) {
 
 player.prototype.trigger = function(event, data) {
     if (this.handlers[event] && this.handlers[event].length > 0) {
-        console.log('Triggered event ' + event + ', ' + this.handlers[event].length + ' handlers found');
         for (var handler_id = 0; handler_id < this.handlers[event].length; handler_id++) {
-            console.log('Found registered handler, calling');
             this.handlers[event][handler_id].call();
         }
     }
+}
+
+player.prototype.owns = function(tested_card) {
+	if (tested_card instanceof card) {
+		return (tested_card.getOwner() == this);
+	}
 }
 
 player.prototype.removeHandlers = function(event) {
@@ -290,6 +294,7 @@ zone.prototype.setOwner = function(owner) {
 var card = function(img, name, type) {
     var location = 'library';
     var image = img;
+    this.owner = false;
     this.element = $('<div/>').css('background-image','url("' + img + '")').attr('title', name).addClass('card');
     this.tapped = false;
     var that = this;
@@ -309,6 +314,16 @@ var card = function(img, name, type) {
 	if (new_cost.R) this.cost.R = new_cost.R;
 	if (new_cost.G) this.cost.G = new_cost.G;
 	if (new_cost.C) this.cost.C = new_cost.C;
+    }
+
+    this.setOwner = function(owner) {
+	if (owner instanceof player) {
+		this.owner = owner;
+	}
+    }
+
+    this.getOwner = function() {
+	return this.owner;
     }
 
     this.getManaCost = function() {
@@ -377,6 +392,8 @@ var engine = function() {
 	var current_player = 0;
 
 	var players = [];
+
+	this.cards = [];
 
 	this.flags = {};
 
@@ -556,3 +573,11 @@ engine.prototype.trigger = function(event, data) {
         }
     }
 }
+
+engine.prototype.registerDeck = function(deck, player_id) {
+	for (card_id in deck) {
+		if (deck.hasOwnProperty(card_id)) {
+			this.cards.push(deck[card_id]);
+		}
+	}
+};
