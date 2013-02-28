@@ -138,7 +138,7 @@ test('Registering deck', function() {
 	johnny.setDeck(johnnys_deck);
 	var game = new engine();
 	game.addPlayer(johnny);
-	equal(bear.getOwner().getName(), 'Johnny');
+	equal(bear.getOwner().getName(), 'Johnny', 'Cards in registered deck are marked as owned by right player');
 });
 
 test('Drawing from empty library', function() {
