@@ -62,6 +62,20 @@ test('Card object', function() {
 	var johnny = new player('Johnny');
 	test_card.setOwner(johnny);
 	equal(test_card.getOwner(), johnny, 'Owner is stored and retrieved correctly');
+	var test_card = getBear();
+	var johnny = new player('Johnny');
+	var johnny_library = new zone('library', true, true);
+	johnny.setLibrary(johnny_library);
+	test_card.setOwner(johnny);
+	test_card.goLibrary();
+	equal(johnny_library.contents.length, 1, 'Card goes to its owner library');	
+	var johnny = new player('Johnny');
+	var johnny_graveyard = new zone('graveyard', true, true);
+	johnny.setGraveyard(johnny_graveyard);
+	test_card.setOwner(johnny);
+	test_card.goGraveyard();
+	equal(johnny_graveyard.contents.length, 1, 'Card goes to its owner graveyard');
+	
 });
 
 test('Player object events', 1, function(){
@@ -80,7 +94,40 @@ test('Zone object', function() {
 	equal(hand.owner.getName(), 'Johnny', 'Setting zone owner works');
 });
 
-// Integration
+
+test('Permanent object', function() {
+	var our_card = getBear();
+	var our_permanent = new permanent(our_card);
+	equal(our_permanent.getName(), 'Grizzly Bears', 'Name of card used as name of permanent');
+	var our_token = new permanent({
+		'name': 'Centaur',
+		'power': 2,
+		'toughness': 2
+	});
+	equal(our_token.getName(), 'Centaur' , 'Name of token is stored and passed correctly.');
+	var our_card = getCoupon();
+	var our_permanent = new permanent(our_card);
+	equal(our_permanent.isTapped(), false, 'Permanent is created untapped');
+	our_permanent.tap();
+	equal(our_permanent.isTapped(), true, 'Permanent can be tapped');
+	our_permanent.untap();
+	equal(our_permanent.isTapped(), false, 'Permanent can be untapped');
+	var our_card = getBear();
+	var our_permanent = new permanent(our_card);
+	equal(our_permanent.getManaCost().G, 1, 'Card cost is used as permanent cost')
+});
+
+
+test('Spell object', function() {
+	var our_card = getBear();
+	var johnny = new player('Johnny');
+	our_card.setOwner(johnny);
+	var our_spell = new spell(our_card);
+	equal(our_spell.representedBy, our_card, 'Spell is represented by right card');
+	equal(our_spell.getOwner(), johnny, 'Spell owner is passed correctly');
+});
+
+// Integration tests
 
 test('Drawing from library', function() {
 	// Here's our player
@@ -105,30 +152,6 @@ test('Drawing from library', function() {
 	equal(johnny.hand.contents[0].getName(), 'Ashnod`s Coupon', 'Drawn card is Ashnod`s Coupon');
 	equal(johnny.flags.drawnFromEmptyLibrary, false, 'Johnny is not marked as having drawn card from empty library');
 });
-
-test('Permanent object', function() {
-	var our_card = getBear();
-	var our_permanent = new permanent(our_card);
-	equal(our_permanent.getName(), 'Grizzly Bears', 'Name of card used as name of permanent');
-	var our_token = new permanent({
-		'name': 'Centaur',
-		'power': 2,
-		'toughness': 2
-	});
-	equal(our_token.getName(), 'Centaur' , 'Name of token is stored and passed correctly.');
-	var our_card = getCoupon();
-	var our_permanent = new permanent(our_card);
-	equal(our_permanent.isTapped(), false, 'Permanent is created untapped');
-	our_permanent.tap();
-	equal(our_permanent.isTapped(), true, 'Permanent can be tapped');
-	our_permanent.untap();
-	equal(our_permanent.isTapped(), false, 'Permanent can be untapped');
-	var our_card = getBear();
-	var our_permanent = new permanent(our_card);
-	equal(our_permanent.getManaCost().G, 1, 'Card cost is used as permanent cost')
-});
-
-// Integration tests
 
 test('Registering deck', function() {
 	var johnny = new player('Johnny');
