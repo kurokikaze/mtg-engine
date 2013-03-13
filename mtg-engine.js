@@ -345,6 +345,23 @@ zone.prototype.setOwner = function(owner) {
     this.owner = owner;   
 }
 
+var stack_object = function() {
+    var contents = [];
+
+    this.pop = function() {
+        var last_spell = contents.pop();
+        return last_spell;
+    }
+
+    this.put = function(spell) {
+        contents.push(spell);
+    }
+
+    this.getContents = function() {
+        return contents;
+    }
+}
+
 var card = function(img, name, type) {
     var location = 'library';
     var image = img;
@@ -464,6 +481,8 @@ var engine = function() {
 	this.cards = [];
 
 	this.flags = {};
+
+	var stack = new stack_object();
 
 	// Check state-based actions
 	var check_SBA = function() {
