@@ -175,6 +175,8 @@ var engine = function() {
 	steps.push(new step('Cleanup'));
 
 	this.addPlayer = function(player) {
+        // Storing reference to battlefield
+        player.setBattlefield(battlefield);
 		players.push(player);
 		// Should fail if no deck is set
 		if (player.deck) {

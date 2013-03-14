@@ -20,6 +20,12 @@ var player = function(name) {
         'drawnFromEmptyLibrary' : false,
 	'won' : false
     }
+
+    this.battlefield = false;
+    this.library = false;
+    this.graveyard = false;
+    this.hand = false;
+
     return this;
 }
 
@@ -41,6 +47,10 @@ player.prototype.draw = function() {
         this.trigger('draw');
     }
     return true;
+}
+
+player.prototype.setBattlefield = function(battlefield) {
+    this.battlefield = battlefield;
 }
 
 player.prototype.setLibrary = function(library) {
@@ -94,8 +104,18 @@ player.prototype.setDeck = function(deck) {
 	this.deck = deck;
 }
 
+player.prototype.getDeck = function(deck) {
+	return this.deck;
+}
+
 player.prototype.removeHandlers = function(event) {
     if (this.handlers[event]) {
         this.handlers[event] = [];
+    }
+}
+
+player.prototype.playLand = function() {
+    if (this.landToPlay > 0) {
+        
     }
 }
