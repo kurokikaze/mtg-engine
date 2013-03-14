@@ -84,7 +84,8 @@ test('Stack object', function() {
     var stack = new stack_object;
     equal(stack.getContents().length, 0, 'Stack is empty on creation');
     stack.put(test_spell);
-    equal(stack.getContents().length, 1, 'Test spell is on stack');
+    equal(stack.getContents().length, 1, 'The spell is on stack');
+    equal(stack.getContents()[0], test_spell, 'Test spell is on stack');
     var resolving_spell = stack.pop();
     equal(stack.getContents().length, 0, 'Test spell is removed from the stack');
     equal(resolving_spell, test_spell, 'Resolving spell is the test spell');
