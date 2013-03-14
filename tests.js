@@ -78,6 +78,19 @@ test('Card object', function() {
 	
 });
 
+test('Stack object', function() {
+	var test_card = getBear();
+    var test_spell = new spell(test_card);
+    var stack = new stack_object;
+    equal(stack.getContents().length, 0, 'Stack is empty on creation');
+    stack.put(test_spell);
+    equal(stack.getContents().length, 1, 'Test spell is on stack');
+    var resolving_spell = stack.pop();
+    equal(stack.getContents().length, 0, 'Test spell is removed from the stack');
+    equal(resolving_spell, test_spell, 'Resolving spell is the test spell');
+});
+
+
 test('Player object events', 1, function(){
 	var spike = new player('Spike');
 	spike.on('test', function() {
