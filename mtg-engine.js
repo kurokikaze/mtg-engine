@@ -192,26 +192,23 @@ var engine = function() {
 	this.start = function() {
 		// This is for playtesting
 		if (players.length == 0) {
-			players.push(new human_player());
-			players.push(new ai_player());
+			var human = new human_player();
 
 			// Create zones
 			var library = new zone('library', true, true);
-			players[0].setLibrary(library);
-			this.zones.push(library);
+			human.setLibrary(library);
 			var hand = new zone('hand', false, true);
-			players[0].setHand(hand);
-			this.zones.push(hand);
+			human.setHand(hand);
 			var graveyard = new zone('graveyard', true, false);
-			players[0].setGraveyard(graveyard);
-			this.zones.push(graveyard);
+			human.setGraveyard(graveyard);
 
 			// Create card and put it in library
 			var newcard = new card('http://media.wizards.com/images/magic/tcg/products/rtr/4f55hkkypu_ru.jpg', 'Слизень из катакомбы', 'Существо &mdash; Слизь');
 			library.place(newcard);
 			var newland = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=225486&type=card', 'Равнина', 'Земля &mdash; Равнина');
 			library.place(newland);
-
+            engine_this.addPlayer(human);
+            engine_this.addPlayer(new ai_player());
 		}
 		turn();
 	}
