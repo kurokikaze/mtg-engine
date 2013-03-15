@@ -18,7 +18,7 @@ var player = function(name) {
 	};
     this.flags = {
         'drawnFromEmptyLibrary' : false,
-	'won' : false
+	    'won' : false
     }
 
     this.battlefield = false;
@@ -38,7 +38,7 @@ player.prototype.givePriority = function() {
 }
 
 player.prototype.draw = function() {
-    this.trigger('draw-replace');
+    this.trigger('draw-replace'); // this is stupid
     if (this.library.contents.length == 0) {
         this.flags.drawnFromEmptyLibrary = true;
     } else {
