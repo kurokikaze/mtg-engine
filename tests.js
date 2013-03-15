@@ -197,6 +197,14 @@ test('Drawing from empty library', function() {
 	equal(johnny.flags.drawnFromEmptyLibrary, true, 'Johnny is marked as having drawn card from empty library');
 });
 
+test('Engine events', 1, function() {
+    var game = new engine();
+    game.on('test', function(data) {
+        equal(data, 'Test', 'Data is passed to event handler');
+    });
+    game.trigger('test', 'Test');
+});
+
 test('APNAP priority order', 1, function() {
 	var $fixture = $('#qunit-fixture');
 	$fixture.append('<div id="actions"></div>');
@@ -218,13 +226,17 @@ test('APNAP priority order', 1, function() {
 
 	// Here's our player 1
 	var johnny = new priority_player('AP');
-	johnny.on('')
+	// Give empty deck and hand to Johnny
+	johnny.setLibrary(new zone('Johnny`s library', true, true));
+	johnny.setHand(new zone('Johnny`s hand', false, true));
 	// Here's our player 1
 	var timmy = new priority_player('NAP');
+	timmy.setLibrary(new zone('Timmy`s library', true, true));
+	timmy.setHand(new zone('Timmy`s hand', false, true));
 
 	var test_game = new engine();
 	//
-	test_game.on('eop_Untap', function() {
+	test_game.on('eos_Untap', function() {
 		// finish the game on the end of turn one phase one
 		test_game.flags.finished = true;
 	});

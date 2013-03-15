@@ -1,31 +1,4 @@
 'use strict';
-// Turn structure
-
-var step = function(name) {
-    this.name = name;
-    this.mandate_actions = [];
-    this.element = $('<span/>').attr('id','step_' + this.name.toLowerCase()).text(this.name);
-	console.log('Creating step ' + name);
-    $('#steps').append(this.element);
-    this.activate = function() {
-        // Clear all steps
-        $('#steps span').removeClass('active');
-        // Set current step in UI
-        this.element.addClass('active');
-        // Apply mandatory actions
-        for (var i = 0; i <= this.mandate_actions.length; i++) {
-            if (this.mandate_actions[i] && typeof this.mandate_actions[i] == 'function') {
-                this.mandate_actions[i]();
-            }
-        }
-    };
-};
-
-step.prototype.addAction = function(action) {
-    this.mandate_actions.push(action);
-    return this;
-}
-
 var engine = function() {
 	var steps = [];
 
@@ -36,6 +9,10 @@ var engine = function() {
 	var current_step = 0;
 	var current_player = 0;
 
+    this.moveToNextPlayer = function() {
+        
+    }
+
 	var players = [];
 
 	this.cards = [];
@@ -43,6 +20,24 @@ var engine = function() {
 	this.flags = {};
 
 	var stack = new stack_object();
+
+    if (!step && !window.step) {
+        console.log('Step module is not loaded');
+    }
+
+    // Steps
+	steps.push(new step('Untap'));
+	steps.push(new step('Upkeep'));
+	steps.push(new step('Draw').addAction(function() { mtg.current_player().draw();}));
+	steps.push(new step('Precombat Main'));
+	steps.push(new step('Beginning of Combat'));
+	steps.push(new step('Declare Attackers'));
+	steps.push(new step('Declare Blockers'));
+	steps.push(new step('Combat Damage'));
+	steps.push(new step('End of Combat'));
+	steps.push(new step('Post-Combat Main'));
+	steps.push(new step('End'));
+	steps.push(new step('Cleanup'));
 
 	// Check state-based actions
 	var check_SBA = function() {
@@ -64,28 +59,22 @@ var engine = function() {
 		}
 	}
 
-	var turn = function() {
-        var start_turn = function() {
-            for (var player_id in players) {
-                players[player_id].landsToPlay = 1;
-            }
-        }
-
+    this.on('stepStart', function(nextStepCallback) {
 		var end_step = function() {
-			console.log('Step ended');
-			engine_this.trigger('eop_' + steps[current_step].name);
+			console.log('Step ' + steps[current_step].name + ' ended');
+			engine_this.trigger('eos_' + steps[current_step].name);
 			if (!engine_this.flags.finished) {
 				// Move to the next step
-				current_step = ((current_step + 1) % (steps.length));
-				// If it's a new turn, make next player active
-				if (current_step == 0) {
-					current_player = ((current_player + 1) % (players.length));
-                    start_turn();
-				}
 				console.log('Setting timeout for new turn');
 				setTimeout(function() {
-					console.log('New turn starting');
-					turn();
+					console.log('New step starting');
+                    // we cannot trigger here w/o reworking how step system handles 
+                    // async player input
+                    if (nextStepCallback) {
+                        nextStepCallback();
+                    } else {
+                        console.log('Current player is ' + current_player + ', current step is ' + current_step);
+                    }
 				}, 100);
 			} else {
 				engine_this.trigger('finish');
@@ -105,7 +94,35 @@ var engine = function() {
 			check_SBA();
 			players[current_player_id].givePriority();
 		}, end_step);
-	};
+	});
+
+    this.on('turnStart', function() {
+        // asynchronously looping through steps
+        console.log('Preparing to run through ' + steps.length + ' steps');
+        asyncLoop(steps.length, function(loop) {
+            current_step = loop.iteration();
+            console.log('Beginning step ' + current_step);
+            engine_this.trigger('stepStart', loop.next);
+        }, function(){ //
+            engine_this.trigger('turnEnd');
+        });
+    });
+
+    this.on('turnEnd', function() {
+        console.log('Turn has ended');
+        engine_this.trigger('beginTurn');
+    });
+
+    /**
+     * This is not a step, just utility function setting values for new turn
+     */
+    this.on('beginTurn', function() {
+        current_player = ((current_player + 1) % (players.length));
+        for (var player_id in players) {
+            players[player_id].landsToPlay = 1;
+        }
+        engine_this.trigger('turnStart');
+    });
 
 	var mtg_searcher = function() {
 		var set = [];
@@ -161,19 +178,6 @@ var engine = function() {
         this.zones.push(battlefield);
 	var exile = [];
 	
-	steps.push(new step('Untap'));
-	steps.push(new step('Upkeep'));
-	steps.push(new step('Draw').addAction(function() { mtg.current_player().draw();}));
-	steps.push(new step('Precombat Main'));
-	steps.push(new step('Beginning of Combat'));
-	steps.push(new step('Declare Attackers'));
-	steps.push(new step('Declare Blockers'));
-	steps.push(new step('Combat Damage'));
-	steps.push(new step('End of Combat'));
-	steps.push(new step('Post-Combat Main'));
-	steps.push(new step('End'));
-	steps.push(new step('Cleanup'));
-
 	this.addPlayer = function(player) {
         // Storing reference to battlefield
         player.setBattlefield(battlefield);
@@ -210,7 +214,8 @@ var engine = function() {
             engine_this.addPlayer(human);
             engine_this.addPlayer(new ai_player());
 		}
-		turn();
+
+		engine_this.trigger('turnStart');
 	}
 	
 	return this;
@@ -224,9 +229,10 @@ engine.prototype.on = function(event, callback) {
 }
 
 engine.prototype.trigger = function(event, data) {
+    var engine_this = this;
     if (this.handlers[event] && this.handlers[event].length > 0) {
         for (var handler_id = 0; handler_id < this.handlers[event].length; handler_id++) {
-            this.handlers[event][handler_id].call();
+            this.handlers[event][handler_id].call(engine_this, data);
         }
     }
 }
