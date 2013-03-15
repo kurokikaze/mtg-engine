@@ -2,7 +2,6 @@ var step = function(name) {
     this.name = name;
     this.mandate_actions = [];
     this.element = $('<span/>').attr('id','step_' + this.name.toLowerCase()).text(this.name);
-	console.log('Creating step ' + name);
     $('#steps').append(this.element);
     this.activate = function() {
         // Clear all steps
