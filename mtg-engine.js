@@ -41,20 +41,27 @@ var engine = function() {
 
 	// Check state-based actions
 	var check_SBA = function() {
+        console.log('Checking state-based actions');
 		for (var player_id in players) {
 			if (players.hasOwnProperty(player_id)) {
-				if (players[player_id].life <= 0) {
-					players[player_id].flags['lost'] = true;
+                var checked_player = players[player_id];
+				if (checked_player.life <= 0) {
+					checked_player.flags['lost'] = true;
 					engine_this.trigger('player_lost', players[player_id]);
 				}
+                if (checked_player.flags['won'] == true) {
+					this.flags.finished = true;
+				}
+                if (checked_player.flags['drawnFromEmptyLibrary'] == true) {
+                    console.log('Player has drawn from empty library and will be terminated');
+                    this.flags.finished = true;
+                }
 			}
 		}
 
 		for (var player_id in players) {
 			if (players.hasOwnProperty(player_id)) {
-				if (players[player_id] && players[player_id].flags['won'] == true) {
-					this.flags.finished = true;
-				}
+				
 			}
 		}
 	}
