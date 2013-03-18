@@ -17,5 +17,5 @@ var View = function(engine) {
     
     this.getGame = function() {
         return engine;
-    }
+    };
 };

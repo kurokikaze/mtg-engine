@@ -1,16 +1,10 @@
-var zone = function(name, ordered, hidden) {
-    var element = $('<div/>').attr('id', name + '_zone').addClass('zone');
+ var zone = function(name, ordered, hidden) {
     this.name = name;
     this.owner = false;
-    element.append($('<h4/>').text(name).addClass('zoneName'));
-    if (ordered) {
-        element.addClass('zone-ordered');
-    }
-    if (hidden) {
-        element.addClass('zone-hidden');
-    }
+    var game = false;
     var that = this;
-    $('div#zones').append(element);
+    this.contents = [];
+
     this.place = function(card, mode) {
         switch (mode) {
             case 'bottom':
@@ -19,16 +13,27 @@ var zone = function(name, ordered, hidden) {
             case 'shuffle': // shuffle
                 that.contents.push(card);
                 that.contents.shuffle();
+                
                 break;
             default: // 'top'
                 that.contents.unshift(card);
         }
-        element.append(card.element);
+        
+        // Right now we have tests relying on interactions between cards and zones 
+        // not added to any game. This check is for them.
+        if (game) {
+            game.getView().trigger('cardMoved', card, that, mode);
+        }
     };
-    this.contents = [];
     
+    this.setGame = function(engineInstance) {
+        game = engineInstance;
+    }    
+
     return this;
 };
+
+
 
 zone.prototype.getName = function() {
     return this.name;

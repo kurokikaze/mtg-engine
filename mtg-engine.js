@@ -189,12 +189,27 @@ var engine = function() {
 	this.zones = [];
 
 	var battlefield = new zone('battlefield', false, false);
+    battlefield.setGame(engine_this);
     this.zones.push(battlefield);
 	var exile = [];
 	
 	this.addPlayer = function(player) {
         // Storing reference to battlefield
         player.setBattlefield(battlefield);
+
+        // Registering zones to the game
+        // This should be done differently. Player has only his deck when assigned
+        // to the game. His zones are created in this function
+        if (player.library) {
+            player.library.setGame(engine_this);
+        }
+        if (player.hand) {
+            player.hand.setGame(engine_this);
+        }
+        if (player.graveyard) {
+            player.graveyard.setGame(engine_this);
+        }
+
 		players.push(player);
 		// Should fail if no deck is set
 		if (player.deck) {
@@ -214,10 +229,13 @@ var engine = function() {
 
 			// Create zones
 			var library = new zone('library', true, true);
+            library.setGame(engine_this);
 			human.setLibrary(library);
 			var hand = new zone('hand', false, true);
+            hand.setGame(engine_this);
 			human.setHand(hand);
 			var graveyard = new zone('graveyard', true, false);
+            graveyard.setGame(engine_this);
 			human.setGraveyard(graveyard);
 
 			// Create card and put it in library
@@ -236,14 +254,14 @@ var engine = function() {
 	}
 	
 	return this;
-}
+};
 
 engine.prototype.on = function(event, callback) {
     if (!this.handlers[event]) {
         this.handlers[event] = [];
     }
     this.handlers[event].push(callback);
-}
+};
 
 engine.prototype.trigger = function(event, data) {
     var engine_this = this;
@@ -252,7 +270,7 @@ engine.prototype.trigger = function(event, data) {
             this.handlers[event][handler_id].call(engine_this, data);
         }
     }
-}
+};
 
 // Register deck for game
 engine.prototype.registerDeck = function(deck, player) {
