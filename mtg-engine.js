@@ -9,10 +9,6 @@ var engine = function() {
 	var current_step = 0;
 	var current_player = 0;
 
-    this.moveToNextPlayer = function() {
-        
-    }
-
     var view = new View(this);
 
 	var players = [];
