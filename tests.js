@@ -11,6 +11,24 @@ var getBear = function() {
 	return bear;
 }
 
+var putCardIntoHand = function(game, ourPlayer, card) {
+    game.on('gameStart', function() {
+        var targetPlayer = false;
+        var gamePlayers = this.getPlayers();
+        // Searching for target player in game players
+        for (var player_id in gamePlayers) {
+            if (gamePlayers[player_id] == ourPlayer) {
+                targetPlayer = gamePlayers[player_id];
+            }
+        }
+        // If player is found...
+        if (targetPlayer) {
+            // ...place card in his hand
+            targetPlayer.hand.place(card);
+        }
+    });
+}
+
 // Tests
 
 test('Player object', function() {
@@ -271,4 +289,18 @@ test('View events', 2, function() {
 
     game.start();
     
+});
+
+test('New putCardIntoHand', 1, function() {
+    console.log('Putcards test');
+    var game = new engine();
+    var johnny = new player('Johnny');
+    game.addPlayer(johnny);
+    var bears = getBear();
+    putCardIntoHand(game, johnny, bears);
+    game.on('stepStart', function() {
+        var firstPlayer = this.getPlayers()[0];
+        equal(firstPlayer.hand.contents.length, 1, 'Player has card in hand at end of Untap step');
+    });
+    game.start();
 });

@@ -202,12 +202,20 @@ var engine = function() {
         // to the game. His zones are created in this function
         if (player.library) {
             player.library.setGame(engine_this);
+        } else {
+            player.setLibrary(new zone(player.getName() + '`s library', true, true));
         }
+
         if (player.hand) {
             player.hand.setGame(engine_this);
+        } else {
+            player.setHand(new zone(player.getName() + '`s hand', true, true));
         }
+
         if (player.graveyard) {
             player.graveyard.setGame(engine_this);
+        } else {
+            player.setGraveyard(new zone(player.getName() + '`s graveyard', true, true));
         }
 
 		players.push(player);
@@ -250,6 +258,7 @@ var engine = function() {
         engine_this.getView().trigger('gameStart', {
             'players': players
         });
+        engine_this.trigger('gameStart'); // announce start
 		engine_this.trigger('turnStart');
 	}
 	
@@ -257,6 +266,7 @@ var engine = function() {
 };
 
 engine.prototype.on = function(event, callback) {
+    console.log('Registering callback for ' + event);
     if (!this.handlers[event]) {
         this.handlers[event] = [];
     }
@@ -264,6 +274,7 @@ engine.prototype.on = function(event, callback) {
 };
 
 engine.prototype.trigger = function(event, data) {
+    console.log('Triggering ' + event);
     var engine_this = this;
     if (this.handlers[event] && this.handlers[event].length > 0) {
         for (var handler_id = 0; handler_id < this.handlers[event].length; handler_id++) {
