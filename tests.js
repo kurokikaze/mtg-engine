@@ -255,3 +255,20 @@ test('View', function() {
     var view = game.getView();
     equal(game, view.getGame(), 'View returns correct game instance');
 });
+
+test('View events', 2, function() {
+    var game = new engine();
+    var view = game.getView();
+    view.on('gameStart', function(data) {
+        equal(game, this, 'View event uses correct game instance');
+        equal(data.players.length, 2, 'View event for game start returns list of players');
+    });
+
+    // Finish game at the end of the first phase
+    game.on('eos_Untap', function() {
+        game.flags.finished = true;
+    });
+
+    game.start();
+    
+});

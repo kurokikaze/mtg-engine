@@ -6,8 +6,8 @@ var engine = function() {
 	
 	this.handlers = [];
 
-	var current_step = 0;
-	var current_player = 0;
+	var currentStep = 0;
+	var currentPlayer = 0;
 
     var view = new View(this);
 
@@ -30,7 +30,7 @@ var engine = function() {
     // Steps
 	steps.push(new step('Untap'));
 	steps.push(new step('Upkeep'));
-	steps.push(new step('Draw').addAction(function() { mtg.current_player().draw();}));
+	steps.push(new step('Draw').addAction(function() { mtg.currentPlayer().draw();}));
 	steps.push(new step('Precombat Main'));
 	steps.push(new step('Beginning of Combat'));
 	steps.push(new step('Declare Attackers'));
@@ -70,8 +70,8 @@ var engine = function() {
 
     this.on('stepStart', function(nextStepCallback) {
 		var end_step = function() {
-			console.log('Step ' + steps[current_step].name + ' ended');
-			engine_this.trigger('eos_' + steps[current_step].name);
+			console.log('Step ' + steps[currentStep].name + ' ended');
+			engine_this.trigger('eos_' + steps[currentStep].name);
 			if (!engine_this.flags.finished) {
 				// Move to the next step
 				console.log('Setting timeout for new turn');
@@ -82,7 +82,7 @@ var engine = function() {
                     if (nextStepCallback) {
                         nextStepCallback();
                     } else {
-                        console.log('Current player is ' + current_player + ', current step is ' + current_step);
+                        console.log('Current player is ' + currentPlayer + ', current step is ' + currentStep);
                     }
 				}, 100);
 			} else {
@@ -90,35 +90,39 @@ var engine = function() {
 			}
 		}
 		// announce beginning
-		steps[current_step].activate();
-		console.log('Step ' + steps[current_step].name + ' starting, ' + players.length + ' players total');
+		steps[currentStep].activate();
+		console.log('Step ' + steps[currentStep].name + ' starting, ' + players.length + ' players total');
 		// make necessary actions (via triggers)
 		// give players priority starting from current
 		asyncLoop(players.length, function(loop) {
 			console.log('Trying to give priority to player ' + loop.iteration());
-			var current_player_id = loop.iteration();
-			players[current_player_id].on('pass', function() {
+			var currentPlayer_id = loop.iteration();
+			players[currentPlayer_id].on('pass', function() {
 				loop.next();
 			});
 			check_SBA();
-			players[current_player_id].givePriority();
+			players[currentPlayer_id].givePriority();
+            engine_this.getView().trigger('priorityGive', players[currentPlayer_id]);
 		}, end_step);
 	});
 
     this.on('turnStart', function() {
         // asynchronously looping through steps
-        console.log('Preparing to run through ' + steps.length + ' steps');
+        //console.log('Preparing to run through ' + steps.length + ' steps');
         asyncLoop(steps.length, function(loop) {
-            current_step = loop.iteration();
-            console.log('Beginning step ' + current_step);
+            var currentStep = loop.iteration();
+            console.log('Beginning step ' + currentStep);
             engine_this.trigger('stepStart', loop.next);
+            engine_this.getView().trigger('stepStart', currentStep);
         }, function(){ //
+            engine_this.getView().trigger('turnEnd');
             engine_this.trigger('turnEnd');
         });
     });
 
     this.on('turnEnd', function() {
         console.log('Turn has ended');
+        engine_this.getView().trigger('turnEnd');
         engine_this.trigger('beginTurn');
     });
 
@@ -126,18 +130,19 @@ var engine = function() {
      * This is not a step, just utility function setting values for new turn
      */
     this.on('beginTurn', function() {
-        current_player = ((current_player + 1) % (players.length));
+        currentPlayer = ((currentPlayer + 1) % (players.length));
         for (var player_id in players) {
             players[player_id].landsToPlay = 1;
         }
+        engine_this.getView().trigger('turnStart');
         engine_this.trigger('turnStart');
     });
 
 	var mtg_searcher = function() {
 		var set = [];
 		// returns player
-		this.current_player = function() {
-			return players[current_player];
+		this.currentPlayer = function() {
+			return players[currentPlayer];
 		};
 		
 		// Filter zones by name
@@ -184,7 +189,7 @@ var engine = function() {
 	this.zones = [];
 
 	var battlefield = new zone('battlefield', false, false);
-        this.zones.push(battlefield);
+    this.zones.push(battlefield);
 	var exile = [];
 	
 	this.addPlayer = function(player) {
@@ -224,6 +229,9 @@ var engine = function() {
             engine_this.addPlayer(new ai_player());
 		}
 
+        engine_this.getView().trigger('gameStart', {
+            'players': players
+        });
 		engine_this.trigger('turnStart');
 	}
 	
