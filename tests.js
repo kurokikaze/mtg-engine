@@ -249,3 +249,9 @@ test('APNAP priority order', 1, function() {
 
 	test_game.start();
 });
+
+test('View', function() {
+    var game = new engine();
+    var view = game.getView();
+    equal(game, view.getGame(), 'View returns correct game instance');
+});

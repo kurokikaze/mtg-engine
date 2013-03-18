@@ -13,6 +13,8 @@ var engine = function() {
         
     }
 
+    var view = new View(this);
+
 	var players = [];
 
 	this.cards = [];
@@ -23,6 +25,10 @@ var engine = function() {
 
     if (!step && !window.step) {
         console.log('Step module is not loaded');
+    }
+
+    this.getView = function() {
+        return view;
     }
 
     // Steps
