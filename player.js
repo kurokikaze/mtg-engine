@@ -119,3 +119,12 @@ player.prototype.playLand = function() {
         
     }
 }
+
+player.prototype.concede = function() {
+    console.log('$$$ Conceding');
+    // we can concede only when the game is set
+    if (this.game) {
+        console.log('%%% Game is registered');
+        this.game.concede(this);
+    }
+}

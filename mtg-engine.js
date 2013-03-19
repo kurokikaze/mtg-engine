@@ -48,15 +48,17 @@ var engine = function() {
 			if (players.hasOwnProperty(player_id)) {
                 var checked_player = players[player_id];
 				if (checked_player.life <= 0) {
+                    console.log('player has 0 life');
 					checked_player.flags['lost'] = true;
 					engine_this.trigger('player_lost', players[player_id]);
 				}
                 if (checked_player.flags['won'] == true) {
+                    console.log('player has won');
 					this.flags.finished = true;
 				}
-                if (checked_player.flags['drawnFromEmptyLibrary'] == true) {
+                if (checked_player.flags['drawnFromEmptyLibrary'] == true && engine_this.flags['canDrawFromEmptyLibrary'] != true) {
                     console.log('Player has drawn from empty library and will be terminated');
-                    this.flags.finished = true;
+                    engine_this.flags.finished = true;
                 }
 			}
 		}
@@ -67,6 +69,21 @@ var engine = function() {
 			}
 		}
 	}
+
+    // Concede action. Useful for testing
+    // Right now it doesn't uses stack, but uses SBA, which is not right
+    this.concede = function(player) {
+        player.flags['lost'] = true;
+        if (players.length == 2) {
+            engine_this.flags.finished = true;
+        }
+    }
+
+    this.on('player_lost', function() {
+        if (players.length <= 2) {
+            this.trigger('finish');
+        }
+    });
 
     this.on('stepStart', function(nextStepCallback) {
 		var end_step = function() {
@@ -90,6 +107,7 @@ var engine = function() {
 			}
 		}
 		// announce beginning
+        console.log('Inside stepStart, currentStep is ' + currentStep);
 		steps[currentStep].activate();
 		console.log('Step ' + steps[currentStep].name + ' starting, ' + players.length + ' players total');
 		// make necessary actions (via triggers)
@@ -108,9 +126,9 @@ var engine = function() {
 
     this.on('turnStart', function() {
         // asynchronously looping through steps
-        //console.log('Preparing to run through ' + steps.length + ' steps');
+        console.log('Preparing to run through ' + steps.length + ' steps');
         asyncLoop(steps.length, function(loop) {
-            var currentStep = loop.iteration();
+            currentStep = loop.iteration();
             console.log('Beginning step ' + currentStep);
             engine_this.trigger('stepStart', loop.next);
             engine_this.getView().trigger('stepStart', currentStep);
@@ -266,7 +284,6 @@ var engine = function() {
 };
 
 engine.prototype.on = function(event, callback) {
-    console.log('Registering callback for ' + event);
     if (!this.handlers[event]) {
         this.handlers[event] = [];
     }
@@ -274,7 +291,6 @@ engine.prototype.on = function(event, callback) {
 };
 
 engine.prototype.trigger = function(event, data) {
-    console.log('Triggering ' + event);
     var engine_this = this;
     if (this.handlers[event] && this.handlers[event].length > 0) {
         for (var handler_id = 0; handler_id < this.handlers[event].length; handler_id++) {

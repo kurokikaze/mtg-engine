@@ -29,6 +29,17 @@ var putCardIntoHand = function(game, ourPlayer, card) {
     });
 }
 
+    var testPlayer = function(name) {
+		var that = this;
+        this.name = name;
+		this.givePriority = function() {
+			console.log('Test player ' + this.name + ' got priority');
+			that.trigger('pass');
+		}
+	};
+
+	testPlayer.prototype = new player();
+
 // Tests
 
 test('Player object', function() {
@@ -110,12 +121,28 @@ test('Stack object', function() {
 });
 
 
-test('Player object events', 1, function(){
+test('Player object events', 2, function(){
 	var spike = new player('Spike');
 	spike.on('test', function() {
 		ok(true, 'Player event is passed through');
 	});
 	spike.trigger('test');
+    var game = new engine();
+    var spike = new testPlayer('Spike');
+    game.addPlayer(spike);
+    game.addPlayer(new testPlayer('Mike'));
+    game.flags.canDrawFromEmptyLibrary = true;
+    game.on('eos_Untap',function() {
+        console.log('##### Trying to concede...');
+        game.concede(spike);
+    });
+    game.on('eos_Cleanup',function() {
+        this.flags.finished = true;
+    });
+    game.on('finish', function() {
+        equal(spike.flags['lost'], true, 'Game ended after player concedes, player marked as lost');
+    });
+    game.start();
 });
 
 test('Zone object', function() {
