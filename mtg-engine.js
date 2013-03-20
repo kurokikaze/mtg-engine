@@ -16,6 +16,8 @@ var engine = function() {
 	this.cards = [];
 
 	this.flags = {};
+    
+    this.stepDelay = 50;
 
 	var stack = new stack_object();
 
@@ -70,6 +72,10 @@ var engine = function() {
 		}
 	}
 
+    this.getCurrentStep = function() {
+        return steps[currentStep];
+    };
+
     // Concede action. Useful for testing
     // Right now it doesn't uses stack, but uses SBA, which is not right
     this.concede = function(player) {
@@ -101,7 +107,7 @@ var engine = function() {
                     } else {
                         console.log('Current player is ' + currentPlayer + ', current step is ' + currentStep);
                     }
-				}, 100);
+				}, engine_this.stepDelay);
 			} else {
 				engine_this.trigger('finish');
 			}

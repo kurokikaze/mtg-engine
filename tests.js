@@ -315,7 +315,6 @@ test('View events', 2, function() {
     });
 
     game.start();
-    
 });
 
 test('New putCardIntoHand', 1, function() {
@@ -328,6 +327,29 @@ test('New putCardIntoHand', 1, function() {
     game.on('stepStart', function() {
         var firstPlayer = this.getPlayers()[0];
         equal(firstPlayer.hand.contents.length, 1, 'Player has card in hand at end of Untap step');
+    });
+    game.start();
+});
+
+asyncTest('Turn Structure', 1, function() {
+    var game = new engine();
+    game.stepDelay = 0;
+    var johnny = new testPlayer('Johnny');
+    var stepNames = '';
+    game.flags.canDrawFromEmptyLibrary = true;
+    var bears = getBear();
+    putCardIntoHand(game, johnny, bears);
+    game.addPlayer(johnny);
+    game.on('stepStart', function() {
+        var stepName = this.getCurrentStep().name;
+        stepNames = stepNames + ', ' + stepName;
+        console.log('Names are "' + stepNames + '"');
+    });
+    game.on('eos_Cleanup', function() {
+        console.log('Already here');
+        equal(stepNames, ', Untap, Upkeep, Draw, Precombat Main, Beginning of Combat, Declare Attackers, Declare Blockers, Combat Damage, End of Combat, Post-Combat Main, End, Cleanup', 'Step names are correct');
+        this.flags.finished = true;
+        start();
     });
     game.start();
 });
