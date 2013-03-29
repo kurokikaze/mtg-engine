@@ -2,9 +2,11 @@ var card = function(img, name, type) {
     var location = 'library';
     var image = img;
     this.owner = false;
+    this.subtypes = [];
     this.element = $('<div/>').css('background-image','url("' + img + '")').attr('title', name).addClass('card');
     this.tapped = false;
     this.game = false;
+    
     var that = this;
     this.cost = {
 	'W':0,
@@ -34,6 +36,44 @@ var card = function(img, name, type) {
 		this.game = game;
     }
 
+    this.setTypes = function(types) {
+        this.types = types.split(' ');
+    }
+
+    this.getTypes = function() {
+        return this.types;
+    }
+
+    this.hasType = function(type) {
+        for (var i in this.types) {
+            if (this.types.hasOwnProperty(i)) {
+                if (this.types[i] == type) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    this.setSubtypes = function(subtypes) {
+        this.subtypes = subtypes.split(' ');
+    }
+
+    this.getSubtypes = function() {
+        return this.subtypes;
+    }
+
+    this.hasSubtype = function(subtype) {
+        for (var i in this.subtypes) {
+            if (this.subtypes.hasOwnProperty(i)) {
+                if (this.subtypes[i] == subtype) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     this.getOwner = function() {
 	return this.owner;
     }
@@ -59,7 +99,7 @@ var card = function(img, name, type) {
     this.goBattlefield = function() {
 		var card_permanent = new permanent(this);
         this.trigger('etb');
-        if (!this.is_land()) {
+        if (this.hasType('Creature')) {
             this.tapped = true;
         }
         location = 'battlefield';
@@ -73,6 +113,8 @@ var card = function(img, name, type) {
         return this.game;
     }
 
+    this.types = this.setTypes(type);
+    
     return this;
 };
 

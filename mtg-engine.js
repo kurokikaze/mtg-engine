@@ -114,6 +114,7 @@ var engine = function() {
 		}
 		// announce beginning
         console.log('Inside stepStart, currentStep is ' + currentStep);
+        engine_this.trigger('stepStart#triggers');
 		steps[currentStep].activate();
 		console.log('Step ' + steps[currentStep].name + ' starting, ' + players.length + ' players total');
 		// make necessary actions (via triggers)
@@ -122,6 +123,7 @@ var engine = function() {
 			console.log('Trying to give priority to player ' + loop.iteration());
 			var currentPlayer_id = loop.iteration();
 			players[currentPlayer_id].on('pass', function() {
+                players[currentPlayer_id].clearEvent('pass');
 				loop.next();
 			});
 			check_SBA();
@@ -217,6 +219,10 @@ var engine = function() {
     this.zones.push(battlefield);
 	var exile = [];
 	
+    this.playLand = function(card) {
+        card.place(battlefield);
+    }
+
 	this.addPlayer = function(player) {
         // Storing reference to battlefield
         player.setBattlefield(battlefield);
@@ -283,6 +289,7 @@ var engine = function() {
             'players': players
         });
         engine_this.trigger('gameStart'); // announce start
+        engine_this.trigger('gameStart#triggers');
 		engine_this.trigger('turnStart');
 	}
 	
@@ -292,6 +299,9 @@ var engine = function() {
 engine.prototype.on = function(event, callback) {
     if (!this.handlers[event]) {
         this.handlers[event] = [];
+    }
+    if (this.handlers[event].length > 3) {
+        console.log('Engine event "' + event + '" has too many handlers');
     }
     this.handlers[event].push(callback);
 };

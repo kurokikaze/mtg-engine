@@ -11,6 +11,12 @@ var getBear = function() {
 	return bear;
 }
 
+var getIsland = function() {
+    var island = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=177737&type=card', 'Island', 'Land');
+    island.setSubtypes('Island');
+    return island;
+}
+
 var putCardIntoHand = function(game, ourPlayer, card) {
     game.on('gameStart', function() {
         var targetPlayer = false;
@@ -104,7 +110,16 @@ test('Card object', function() {
 	test_card.setOwner(johnny);
 	test_card.goGraveyard();
 	equal(johnny_graveyard.contents.length, 1, 'Card goes to its owner graveyard');
-	
+    var test_card = getBear();
+    test_card.setTypes('Artifact Creature');
+    equal(test_card.hasType('Artifact'), true, 'Card type is saved and retrieved (1)');
+    equal(test_card.hasType('Creature'), true, 'Card type is saved and retrieved (2)');
+    equal(test_card.hasType('Land'), false, 'Card type is saved and retrieved (3)');
+    var test_card = getBear();
+    test_card.setSubtypes('Lizard Wizard');
+    equal(test_card.hasSubtype('Lizard'), true, 'Card subtype is saved and retrieved (1)');
+    equal(test_card.hasSubtype('Wizard'), true, 'Card subtype is saved and retrieved (2)');
+    equal(test_card.hasSubtype('Human'), false, 'Card subtype is saved and retrieved (3)');
 });
 
 test('Stack object', function() {
@@ -324,7 +339,7 @@ test('New putCardIntoHand', 1, function() {
     game.addPlayer(johnny);
     var bears = getBear();
     putCardIntoHand(game, johnny, bears);
-    game.on('stepStart', function() {
+    game.on('stepStart#triggers', function() {
         var firstPlayer = this.getPlayers()[0];
         equal(firstPlayer.hand.contents.length, 1, 'Player has card in hand at end of Untap step');
     });
@@ -340,7 +355,7 @@ asyncTest('Turn Structure', 1, function() {
     var bears = getBear();
     putCardIntoHand(game, johnny, bears);
     game.addPlayer(johnny);
-    game.on('stepStart', function() {
+    game.on('stepStart#triggers', function() {
         var stepName = this.getCurrentStep().name;
         stepNames = stepNames + ', ' + stepName;
         console.log('Names are "' + stepNames + '"');

@@ -83,6 +83,9 @@ player.prototype.on = function(event, callback) {
     if (!this.handlers[event]) {
         this.handlers[event] = [];
     }
+    if (this.handlers[event].length > 3) {
+        console.log('Event "' + event + '" has too many handlers');
+    }
     this.handlers[event].push(callback);
 }
 
@@ -91,6 +94,12 @@ player.prototype.trigger = function(event, data) {
         for (var handler_id = 0; handler_id < this.handlers[event].length; handler_id++) {
             this.handlers[event][handler_id].call();
         }
+    }
+}
+
+player.prototype.clearEvent = function(event) {
+    if (this.handlers[event] && this.handlers[event].length > 0) {
+        this.handlers[event] = [];
     }
 }
 
@@ -114,9 +123,11 @@ player.prototype.removeHandlers = function(event) {
     }
 }
 
-player.prototype.playLand = function() {
-    if (this.landToPlay > 0) {
-        
+player.prototype.playLand = function(card) {
+    if (this.landToPlay > 0 && 
+        this.game.isMainPhase() &&
+        card.hasType('Land')) {
+        this.game.playLand(card);
     }
 }
 
