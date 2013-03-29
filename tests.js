@@ -39,6 +39,9 @@ var putCardIntoHand = function(game, ourPlayer, card) {
 		var that = this;
         this.name = name;
 		this.givePriority = function() {
+            var stepName = this.getCurrentStep().name;
+            console.log('Player ' + this.name + ' sees step ' + stepName);
+            that.trigger('step#' + stepName, this);
 			console.log('Test player ' + this.name + ' got priority');
 			that.trigger('pass');
 		}
