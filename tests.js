@@ -18,6 +18,7 @@ var getIsland = function() {
 }
 
 var putCardIntoHand = function(game, ourPlayer, card) {
+    card.setOwner(ourPlayer);
     game.on('gameStart', function() {
         var targetPlayer = false;
         var gamePlayers = this.getPlayers();
@@ -40,7 +41,7 @@ var putCardIntoHand = function(game, ourPlayer, card) {
         this.name = name;
 		this.givePriority = function() {
             var stepName = this.getCurrentStep().name;
-            console.log('Player ' + this.name + ' sees step ' + stepName);
+            that.game = this; // Contexts...
             that.trigger('step#' + stepName, this);
 			console.log('Test player ' + this.name + ' got priority');
 			that.trigger('pass');
@@ -361,7 +362,7 @@ asyncTest('Turn Structure', 1, function() {
     game.on('stepStart#triggers', function() {
         var stepName = this.getCurrentStep().name;
         stepNames = stepNames + ', ' + stepName;
-        console.log('Names are "' + stepNames + '"');
+        //console.log('Names are "' + stepNames + '"');
     });
     game.on('eos_Cleanup', function() {
         console.log('Already here');
@@ -369,5 +370,38 @@ asyncTest('Turn Structure', 1, function() {
         this.flags.finished = true;
         start();
     });
+    game.start();
+});
+
+asyncTest('Playing land', 1, function() {
+    console.log('Starting PlayingLand test');
+    var game = new engine();
+    game.stepDelay = 0;
+    var johnny = new testPlayer('Johnny');
+    var johnnys_deck = [];
+    johnnys_deck.push(getIsland());
+    johnnys_deck.push(getIsland());
+    johnnys_deck.push(getIsland());
+    johnny.setDeck(johnnys_deck);
+    johnny.on('step#Draw', function() {
+        console.log('Entering Draw step, ' + johnny.library.contents.length + ' cards in library');
+    });
+
+    var land_played = false;
+
+    // Play land at the start of precombat main phase
+    johnny.on('step#Precombat Main', function() {
+        game.playLand(johnny, johnny.hand.contents[0]);
+        land_played = true;
+        equal(game.mtg.zone('battlefield').eq(0).contents.length, 1, 'Card is on the battlefield after land is played');
+        game.flags.finished = true;
+        start();
+    });
+    game.on('finish', function() {
+        if (!land_played) {
+            ok(false, 'Player lost before playing land')
+        }
+    });
+    game.addPlayer(johnny);
     game.start();
 });

@@ -33,13 +33,13 @@ var engine = function() {
 	steps.push(new step('Untap'));
 	steps.push(new step('Upkeep'));
 	steps.push(new step('Draw').addAction(function() { mtg.currentPlayer().draw();}));
-	steps.push(new step('Precombat Main'));
+	steps.push(new step('Precombat Main').setMain(true));
 	steps.push(new step('Beginning of Combat'));
 	steps.push(new step('Declare Attackers'));
 	steps.push(new step('Declare Blockers'));
 	steps.push(new step('Combat Damage'));
 	steps.push(new step('End of Combat'));
-	steps.push(new step('Post-Combat Main'));
+	steps.push(new step('Post-Combat Main').setMain(true));
 	steps.push(new step('End'));
 	steps.push(new step('Cleanup'));
 
@@ -52,7 +52,7 @@ var engine = function() {
 				if (checked_player.life <= 0) {
                     console.log('player has 0 life');
 					checked_player.flags['lost'] = true;
-					engine_this.trigger('player_lost', players[player_id]);
+					engine_this.trigger('player_lost', checked_player);
 				}
                 if (checked_player.flags['won'] == true) {
                     console.log('player has won');
@@ -61,6 +61,7 @@ var engine = function() {
                 if (checked_player.flags['drawnFromEmptyLibrary'] == true && engine_this.flags['canDrawFromEmptyLibrary'] != true) {
                     console.log('Player has drawn from empty library and will be terminated');
                     engine_this.flags.finished = true;
+                    engine_this.trigger('player_lost', checked_player);
                 }
 			}
 		}
@@ -109,6 +110,7 @@ var engine = function() {
                     }
 				}, engine_this.stepDelay);
 			} else {
+                console.log('Game is finishing')
 				engine_this.trigger('finish');
 			}
 		}
@@ -137,7 +139,7 @@ var engine = function() {
         console.log('Preparing to run through ' + steps.length + ' steps');
         asyncLoop(steps.length, function(loop) {
             currentStep = loop.iteration();
-            console.log('Beginning step ' + currentStep);
+            //console.log('Beginning step ' + currentStep);
             engine_this.trigger('stepStart', loop.next);
             engine_this.getView().trigger('stepStart', currentStep);
         }, function(){ //
@@ -174,7 +176,7 @@ var engine = function() {
 		// Filter zones by name
 		this.zone = function(name) {
 			set = [];
-			for (var zone_id in this.zones) {
+			for (var zone_id in engine_this.zones) {
 				if (engine_this.zones.hasOwnProperty(zone_id)) {
 					var zone = engine_this.zones[zone_id];
 					if (name == '' || zone.getName() == name) {
@@ -219,8 +221,18 @@ var engine = function() {
     this.zones.push(battlefield);
 	var exile = [];
 	
-    this.playLand = function(card) {
-        card.place(battlefield);
+    this.playLand = function(player, card) {
+        console.log('Player ' + player.name + ' intends to play ' + card.getName() + ' as land');
+        console.log('Player has ' + player.landToPlay + ' land(s) to play left this turn');
+        if (card.getOwner() == player &&
+        player.landToPlay > 0 &&
+        engine_this.getCurrentStep().isMain()
+        ) {
+            card.goBattlefield();
+            player.landToPlay--;
+            return true;
+        }
+        return false;
     }
 
 	this.addPlayer = function(player) {
@@ -230,29 +242,28 @@ var engine = function() {
         // Registering zones to the game
         // This should be done differently. Player has only his deck when assigned
         // to the game. His zones are created in this function
-        if (player.library) {
-            player.library.setGame(engine_this);
-        } else {
-            player.setLibrary(new zone(player.getName() + '`s library', true, true));
-        }
-
-        if (player.hand) {
-            player.hand.setGame(engine_this);
-        } else {
-            player.setHand(new zone(player.getName() + '`s hand', true, true));
-        }
-
-        if (player.graveyard) {
-            player.graveyard.setGame(engine_this);
-        } else {
-            player.setGraveyard(new zone(player.getName() + '`s graveyard', true, true));
-        }
-
-		players.push(player);
-		// Should fail if no deck is set
 		if (player.deck) {
 			this.registerDeck(player.deck, player);
 		}
+
+        if (!player.library) {
+            player.setLibrary(new zone(player.getName() + '`s library', true, true));
+            player.library.contents = player.deck;
+        }
+        player.library.setGame(engine_this);
+
+        if (!player.hand) {
+            player.setHand(new zone(player.getName() + '`s hand', true, true));
+        }
+        player.hand.setGame(engine_this);
+
+        if (!player.graveyard) {
+            player.setGraveyard(new zone(player.getName() + '`s graveyard', true, true));
+        }
+        player.graveyard.setGame(engine_this);
+
+		players.push(player);
+		// Should fail if no deck is set
 	};
 
 	this.getPlayers = function() {

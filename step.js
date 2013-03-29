@@ -1,6 +1,7 @@
 var step = function(name) {
     this.name = name;
     this.mandate_actions = [];
+    this.main = false;
     this.activate = function() {
         // Apply mandatory actions
         for (var i = 0; i <= this.mandate_actions.length; i++) {
@@ -8,6 +9,14 @@ var step = function(name) {
                 this.mandate_actions[i]();
             }
         }
+    };
+    this.setMain = function(flag) {
+        this.main = flag;
+        return this;
+    };
+
+    this.isMain = function() {
+        return this.main;
     };
 };
 

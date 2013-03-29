@@ -75,7 +75,7 @@ var card = function(img, name, type) {
     }
 
     this.getOwner = function() {
-	return this.owner;
+	    return this.owner;
     }
 
     this.getManaCost = function() {
@@ -98,15 +98,15 @@ var card = function(img, name, type) {
     
     this.goBattlefield = function() {
 		var card_permanent = new permanent(this);
-        this.trigger('etb');
+        //this.game.trigger('etb', this);
         if (this.hasType('Creature')) {
-            this.tapped = true;
+            card_permanent.tapped = true;
         }
         location = 'battlefield';
 
-	// we're placing permanent on the battlefield,
-	// but mark the card as placed there
-        battlefield.place(card_permanent);
+	    // we're placing permanent on the battlefield,
+	    // but mark the card as placed there
+        this.owner.battlefield.place(card_permanent);
     };
     
     this.getGame = function() {
