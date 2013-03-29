@@ -127,7 +127,7 @@ var engine = function() {
 				loop.next();
 			});
 			check_SBA();
-			players[currentPlayer_id].givePriority();
+			players[currentPlayer_id].givePriority.call(engine_this);
             engine_this.getView().trigger('priorityGive', players[currentPlayer_id]);
 		}, end_step);
 	});
