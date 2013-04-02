@@ -39,11 +39,12 @@ var putCardIntoHand = function(game, ourPlayer, card) {
     var testPlayer = function(name) {
 		var that = this;
         this.name = name;
+
 		this.givePriority = function() {
             var stepName = this.getCurrentStep().name;
             that.game = this; // Contexts...
             that.trigger('step#' + stepName, this);
-			console.log('Test player ' + this.name + ' got priority');
+			//console.log('Test player ' + name + ' got priority');
 			that.trigger('pass');
 		}
 	};
@@ -280,7 +281,7 @@ test('APNAP priority order', 1, function() {
 	var priority_player = function(phrase) {
 		var that = this;
 		this.givePriority = function() {
-			console.log('Test player got priority');
+			// console.log('Test player got priority');
 			teststring = teststring + phrase;
 			that.trigger('pass');
 		}
@@ -336,7 +337,7 @@ test('View events', 2, function() {
     game.start();
 });
 
-test('New putCardIntoHand', 1, function() {
+asyncTest('New putCardIntoHand', 1, function() {
     console.log('Putcards test');
     var game = new engine();
     var johnny = new player('Johnny');
@@ -346,12 +347,16 @@ test('New putCardIntoHand', 1, function() {
     game.on('stepStart#triggers', function() {
         var firstPlayer = this.getPlayers()[0];
         equal(firstPlayer.hand.contents.length, 1, 'Player has card in hand at end of Untap step');
+        start();
     });
     game.start();
 });
 
-asyncTest('Turn Structure', 1, function() {
+asyncTest('Turn Structure', function() {
+    console.log('Starting Turn Structure test')
+    expect(1);
     var game = new engine();
+    game.verbose = 'TS';
     game.stepDelay = 0;
     var johnny = new testPlayer('Johnny');
     var stepNames = '';
@@ -362,20 +367,22 @@ asyncTest('Turn Structure', 1, function() {
     game.on('stepStart#triggers', function() {
         var stepName = this.getCurrentStep().name;
         stepNames = stepNames + ', ' + stepName;
-        //console.log('Names are "' + stepNames + '"');
     });
     game.on('eos_Cleanup', function() {
-        console.log('Already here');
+        console.log('Turn Structure callback');
         equal(stepNames, ', Untap, Upkeep, Draw, Precombat Main, Beginning of Combat, Declare Attackers, Declare Blockers, Combat Damage, End of Combat, Post-Combat Main, End, Cleanup', 'Step names are correct');
         this.flags.finished = true;
         start();
     });
+    console.log('Starting engine for TurnStructure...');
     game.start();
 });
 
-asyncTest('Playing land', 1, function() {
+asyncTest('Playing land', function() {
+    expect(1);
     console.log('Starting PlayingLand test');
     var game = new engine();
+    game.verbose = 'PL';
     game.stepDelay = 0;
     var johnny = new testPlayer('Johnny');
     var johnnys_deck = [];
@@ -389,18 +396,24 @@ asyncTest('Playing land', 1, function() {
 
     var land_played = false;
 
+    var times = 1;
+
     // Play land at the start of precombat main phase
     johnny.on('step#Precombat Main', function() {
         game.playLand(johnny, johnny.hand.contents[0]);
         land_played = true;
         equal(game.mtg.zone('battlefield').eq(0).contents.length, 1, 'Card is on the battlefield after land is played');
+        console.log('PlayingLand intermediate event (' + times + ')');
+        times++;
         game.flags.finished = true;
-        start();
     });
+
     game.on('finish', function() {
+        console.log('Finishing PlayingLand test');
         if (!land_played) {
-            ok(false, 'Player lost before playing land')
+            ok(false, 'Player lost before playing land.')
         }
+        start();
     });
     game.addPlayer(johnny);
     game.start();
