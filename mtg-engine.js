@@ -19,10 +19,18 @@ var engine = function() {
     
     this.stepDelay = 50;
 
+    this.verbose = false;
+
+    var log = function(text) {
+        if (engine_this.verbose) {
+            console.log(engine_this.verbose + ' ' + text);
+        }
+    }
+
 	var stack = new stack_object();
 
     if (!step && !window.step) {
-        console.log('Step module is not loaded');
+        log('Step module is not loaded');
     }
 
     this.getView = function() {
@@ -45,21 +53,21 @@ var engine = function() {
 
 	// Check state-based actions
 	var check_SBA = function() {
-        console.log('Checking state-based actions');
+        log('Checking state-based actions');
 		for (var player_id in players) {
 			if (players.hasOwnProperty(player_id)) {
                 var checked_player = players[player_id];
 				if (checked_player.life <= 0) {
-                    console.log('player has 0 life');
+                    log('player has 0 life');
 					checked_player.flags['lost'] = true;
 					engine_this.trigger('player_lost', checked_player);
 				}
                 if (checked_player.flags['won'] == true) {
-                    console.log('player has won');
+                    log('player has won');
 					this.flags.finished = true;
 				}
                 if (checked_player.flags['drawnFromEmptyLibrary'] == true && engine_this.flags['canDrawFromEmptyLibrary'] != true) {
-                    console.log('Player has drawn from empty library and will be terminated');
+                    log('Player has drawn from empty library and will be terminated');
                     engine_this.flags.finished = true;
                     engine_this.trigger('player_lost', checked_player);
                 }
@@ -94,35 +102,35 @@ var engine = function() {
 
     this.on('stepStart', function(nextStepCallback) {
 		var end_step = function() {
-			console.log('Step ' + steps[currentStep].name + ' ended');
+			log('Step ' + steps[currentStep].name + ' ended');
 			engine_this.trigger('eos_' + steps[currentStep].name);
 			if (!engine_this.flags.finished) {
 				// Move to the next step
-				console.log('Setting timeout for new turn');
+				log('Setting timeout for new turn');
 				setTimeout(function() {
-					console.log('New step starting');
+					log('New step starting');
                     // we cannot trigger here w/o reworking how step system handles 
                     // async player input
                     if (nextStepCallback) {
                         nextStepCallback();
                     } else {
-                        console.log('Current player is ' + currentPlayer + ', current step is ' + currentStep);
+                        log('Current player is ' + currentPlayer + ', current step is ' + currentStep);
                     }
 				}, engine_this.stepDelay);
 			} else {
-                console.log('Game is finishing')
+                log('Game is finishing')
 				engine_this.trigger('finish');
 			}
 		}
 		// announce beginning
-        console.log('Inside stepStart, currentStep is ' + currentStep);
+        log('Inside stepStart, currentStep is ' + currentStep);
         engine_this.trigger('stepStart#triggers');
 		steps[currentStep].activate();
-		console.log('Step ' + steps[currentStep].name + ' starting, ' + players.length + ' players total');
+		log('Step ' + steps[currentStep].name + ' starting, ' + players.length + ' players total');
 		// make necessary actions (via triggers)
 		// give players priority starting from current
 		asyncLoop(players.length, function(loop) {
-			console.log('Trying to give priority to player ' + loop.iteration());
+			log('Trying to give priority to player ' + loop.iteration());
 			var currentPlayer_id = loop.iteration();
 			players[currentPlayer_id].on('pass', function() {
                 players[currentPlayer_id].clearEvent('pass');
@@ -136,10 +144,10 @@ var engine = function() {
 
     this.on('turnStart', function() {
         // asynchronously looping through steps
-        console.log('Preparing to run through ' + steps.length + ' steps');
+        log('Preparing to run through ' + steps.length + ' steps');
         asyncLoop(steps.length, function(loop) {
             currentStep = loop.iteration();
-            //console.log('Beginning step ' + currentStep);
+            // log('Beginning step ' + currentStep);
             engine_this.trigger('stepStart', loop.next);
             engine_this.getView().trigger('stepStart', currentStep);
         }, function(){ //
@@ -149,7 +157,7 @@ var engine = function() {
     });
 
     this.on('turnEnd', function() {
-        console.log('Turn has ended');
+        log('Turn has ended');
         engine_this.getView().trigger('turnEnd');
         engine_this.trigger('beginTurn');
     });
@@ -222,8 +230,8 @@ var engine = function() {
 	var exile = [];
 	
     this.playLand = function(player, card) {
-        console.log('Player ' + player.name + ' intends to play ' + card.getName() + ' as land');
-        console.log('Player has ' + player.landToPlay + ' land(s) to play left this turn');
+        log('Player ' + player.name + ' intends to play ' + card.getName() + ' as land');
+        log('Player has ' + player.landToPlay + ' land(s) to play left this turn');
         if (card.getOwner() == player &&
         player.landToPlay > 0 &&
         engine_this.getCurrentStep().isMain()
@@ -274,7 +282,8 @@ var engine = function() {
 	this.start = function() {
 		// This is for playtesting
 		if (players.length == 0) {
-			var human = new human_player();
+            console.log('Attention, creating human player!');
+			var human = new ai_player();
 
 			// Create zones
 			var library = new zone('library', true, true);
@@ -312,7 +321,7 @@ engine.prototype.on = function(event, callback) {
         this.handlers[event] = [];
     }
     if (this.handlers[event].length > 3) {
-        console.log('Engine event "' + event + '" has too many handlers');
+        log('Engine event "' + event + '" has too many handlers');
     }
     this.handlers[event].push(callback);
 };
