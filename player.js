@@ -79,7 +79,6 @@ player.prototype.hasMana = function(color, amount){
 };
 
 player.prototype.on = function(event, callback) {
-    console.log('Registering event ' + event);
     if (!this.handlers[event]) {
         this.handlers[event] = [];
     }
