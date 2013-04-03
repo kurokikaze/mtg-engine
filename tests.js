@@ -41,6 +41,7 @@ var putCardIntoHand = function(game, ourPlayer, card) {
         this.name = name;
 
 		this.givePriority = function() {
+            console.log('Testplayer ' + name + ' got priority');
             var stepName = this.getCurrentStep().name;
             that.game = this; // Contexts...
             that.trigger('step#' + stepName, this);
@@ -52,7 +53,7 @@ var putCardIntoHand = function(game, ourPlayer, card) {
 	testPlayer.prototype = new player();
 
 // Tests
-
+/*
 test('Player object', function() {
 	equal((new player('test')).getName(), 'test', 'Storing and returning name');
 	equal((new player('test')).flags.drawnFromEmptyLibrary, false, 'Flags are present on creation, DFEL is false');
@@ -141,7 +142,7 @@ test('Stack object', function() {
 });
 
 
-test('Player object events', 2, function(){
+asyncTest('Player object events', 2, function(){
 	var spike = new player('Spike');
 	spike.on('test', function() {
 		ok(true, 'Player event is passed through');
@@ -161,6 +162,7 @@ test('Player object events', 2, function(){
     });
     game.on('finish', function() {
         equal(spike.flags['lost'], true, 'Game ended after player concedes, player marked as lost');
+        start();
     });
     game.start();
 });
@@ -270,7 +272,7 @@ test('Engine events', 1, function() {
     game.trigger('test', 'Test');
 });
 
-test('APNAP priority order', 1, function() {
+asyncTest('APNAP priority order', 1, function() {
 	var $fixture = $('#qunit-fixture');
 	$fixture.append('<div id="actions"></div>');
 	$fixture.append('<div id="zones"></div>');
@@ -281,7 +283,7 @@ test('APNAP priority order', 1, function() {
 	var priority_player = function(phrase) {
 		var that = this;
 		this.givePriority = function() {
-			// console.log('Test player got priority');
+			console.log('Test player got priority');
 			teststring = teststring + phrase;
 			that.trigger('pass');
 		}
@@ -294,20 +296,24 @@ test('APNAP priority order', 1, function() {
 	// Give empty deck and hand to Johnny
 	johnny.setLibrary(new zone('Johnny`s library', true, true));
 	johnny.setHand(new zone('Johnny`s hand', false, true));
-	// Here's our player 1
+	// Here's our player 2
 	var timmy = new priority_player('NAP');
 	timmy.setLibrary(new zone('Timmy`s library', true, true));
 	timmy.setHand(new zone('Timmy`s hand', false, true));
 
 	var test_game = new engine();
+    test_game.verbose = 'APNAP';
+    test_game.flags.canDrawFromEmptyLibrary = true;
 	//
 	test_game.on('eos_Untap', function() {
+        console.log('eos_Untap');
 		// finish the game on the end of turn one phase one
 		test_game.flags.finished = true;
 	});
 
 	test_game.on('finish', function() {
 		equal(teststring, 'APNAP', 'Players are given priority in APNAP order');
+        start();
 	});
 	test_game.addPlayer(johnny);
 	test_game.addPlayer(timmy);
@@ -336,17 +342,20 @@ test('View events', 2, function() {
 
     game.start();
 });
-
+*/
 asyncTest('New putCardIntoHand', 1, function() {
     console.log('Putcards test');
     var game = new engine();
+    game.verbose = 'PC';
     var johnny = new player('Johnny');
     game.addPlayer(johnny);
     var bears = getBear();
     putCardIntoHand(game, johnny, bears);
     game.on('stepStart#triggers', function() {
+        console.log('Stepstart trigger');
         var firstPlayer = this.getPlayers()[0];
         equal(firstPlayer.hand.contents.length, 1, 'Player has card in hand at end of Untap step');
+        this.flags.finished = true;
         start();
     });
     game.start();
@@ -358,7 +367,7 @@ asyncTest('Turn Structure', function() {
     var game = new engine();
     game.verbose = 'TS';
     game.stepDelay = 0;
-    var johnny = new testPlayer('Johnny');
+    var johnny = new testPlayer('Jackie');
     var stepNames = '';
     game.flags.canDrawFromEmptyLibrary = true;
     var bears = getBear();
@@ -382,6 +391,7 @@ asyncTest('Playing land', function() {
     expect(1);
     console.log('Starting PlayingLand test');
     var game = new engine();
+    
     game.verbose = 'PL';
     game.stepDelay = 0;
     var johnny = new testPlayer('Johnny');
@@ -400,10 +410,10 @@ asyncTest('Playing land', function() {
 
     // Play land at the start of precombat main phase
     johnny.on('step#Precombat Main', function() {
+        console.log('PlayingLand intermediate event (' + times + ')');
         game.playLand(johnny, johnny.hand.contents[0]);
         land_played = true;
         equal(game.mtg.zone('battlefield').eq(0).contents.length, 1, 'Card is on the battlefield after land is played');
-        console.log('PlayingLand intermediate event (' + times + ')');
         times++;
         game.flags.finished = true;
     });

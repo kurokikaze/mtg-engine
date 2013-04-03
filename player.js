@@ -83,7 +83,7 @@ player.prototype.on = function(event, callback) {
         this.handlers[event] = [];
     }
     if (this.handlers[event].length > 3) {
-        console.log('Event "' + event + '" has too many handlers');
+        console.log('!!! Event "' + event + '" has too many handlers');
     }
     this.handlers[event].push(callback);
 }

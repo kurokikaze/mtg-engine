@@ -64,7 +64,7 @@ var engine = function() {
 				}
                 if (checked_player.flags['won'] == true) {
                     log('player has won');
-					this.flags.finished = true;
+					engine_this.flags.finished = true;
 				}
                 if (checked_player.flags['drawnFromEmptyLibrary'] == true && engine_this.flags['canDrawFromEmptyLibrary'] != true) {
                     log('Player has drawn from empty library and will be terminated');
@@ -73,12 +73,17 @@ var engine = function() {
                 }
 			}
 		}
+        if (engine_this.flags.finished == true) {
+            log('SBA checked, game is finishing');
+        } else {
+            log('SBA checked')
+        }
 
-		for (var player_id in players) {
+		/*for (var player_id in players) {
 			if (players.hasOwnProperty(player_id)) {
 				
 			}
-		}
+		}*/
 	}
 
     this.getCurrentStep = function() {
@@ -96,15 +101,16 @@ var engine = function() {
 
     this.on('player_lost', function() {
         if (players.length <= 2) {
-            this.trigger('finish');
+            // this.trigger('finish');
+            engine_this.flags.finished = true;
         }
     });
 
     this.on('stepStart', function(nextStepCallback) {
 		var end_step = function() {
-			log('Step ' + steps[currentStep].name + ' ended');
-			engine_this.trigger('eos_' + steps[currentStep].name);
 			if (!engine_this.flags.finished) {
+                log('Step ' + steps[currentStep].name + ' ended');
+                engine_this.trigger('eos_' + steps[currentStep].name);
 				// Move to the next step
 				log('Setting timeout for new turn');
 				setTimeout(function() {
@@ -137,8 +143,13 @@ var engine = function() {
 				loop.next();
 			});
 			check_SBA();
-			players[currentPlayer_id].givePriority.call(engine_this);
-            engine_this.getView().trigger('priorityGive', players[currentPlayer_id]);
+            if (engine_this.flags.finished == true) {
+                log('Engine is shutting down, breaking players loop');
+                loop.break();
+            } else {
+			    players[currentPlayer_id].givePriority.call(engine_this);
+                engine_this.getView().trigger('priorityGive', players[currentPlayer_id]);
+            }
 		}, end_step);
 	});
 
@@ -255,6 +266,7 @@ var engine = function() {
 		}
 
         if (!player.library) {
+            log('Player ' + player.getName() + ' has no library declared, his deck is set as his library');
             player.setLibrary(new zone(player.getName() + '`s library', true, true));
             player.library.contents = player.deck;
         }
