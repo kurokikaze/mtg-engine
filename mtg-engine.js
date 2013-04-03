@@ -254,35 +254,35 @@ var engine = function() {
         return false;
     }
 
-	this.addPlayer = function(player) {
+	this.addPlayer = function(new_player) {
         // Storing reference to battlefield
-        player.setBattlefield(battlefield);
+        new_player.setBattlefield(battlefield);
 
         // Registering zones to the game
         // This should be done differently. Player has only his deck when assigned
         // to the game. His zones are created in this function
-		if (player.deck) {
-			this.registerDeck(player.deck, player);
+		if (new_player.deck) {
+			this.registerDeck(new_player.deck, new_player);
 		}
 
-        if (!player.library) {
-            log('Player ' + player.getName() + ' has no library declared, his deck is set as his library');
-            player.setLibrary(new zone(player.getName() + '`s library', true, true));
-            player.library.contents = player.deck;
+        if (!new_player.library) {
+            log('Player ' + new_player.getName() + ' has no library declared, his deck is set as his library [' + new_player.deck.length + ' card(s)]');
+            new_player.setLibrary(new zone(new_player.getName() + '`s library', true, true));
+            new_player.library.contents = new_player.deck;
         }
-        player.library.setGame(engine_this);
+        new_player.library.setGame(engine_this);
 
-        if (!player.hand) {
-            player.setHand(new zone(player.getName() + '`s hand', true, true));
+        if (!new_player.hand) {
+            new_player.setHand(new zone(new_player.getName() + '`s hand', true, true));
         }
-        player.hand.setGame(engine_this);
+        new_player.hand.setGame(engine_this);
 
-        if (!player.graveyard) {
-            player.setGraveyard(new zone(player.getName() + '`s graveyard', true, true));
+        if (!new_player.graveyard) {
+            new_player.setGraveyard(new zone(new_player.getName() + '`s graveyard', true, true));
         }
-        player.graveyard.setGame(engine_this);
+        new_player.graveyard.setGame(engine_this);
 
-		players.push(player);
+		players.push(new_player);
 		// Should fail if no deck is set
 	};
 

@@ -2,8 +2,9 @@
  * Player. There can be more than two
  */
 var player = function(name) {
-    var that = this;
-    this.getName = function() { return name; };
+    this.getName = function() { 
+        return name; 
+    };
     this.handlers = {};
     this.deck = [];
     this.life = 20;
@@ -26,7 +27,7 @@ var player = function(name) {
     this.graveyard = false;
     this.hand = false;
 
-    return this;
+    //return this;
 }
 
 player.prototype.timeoutPriority = function() {

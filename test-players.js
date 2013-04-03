@@ -20,7 +20,11 @@ human_player.prototype = new player;
 var ai_player = function() {
     var that = this;
     this.givePriority = function() {
-        console.log('AI player got priority');
+        if (that.game && that.game.flags.verbose) {
+            console.log(that.game.flags.verbose + ' AI player got priority');
+        } else {
+            console.log('AI player got priority');
+        }
         setTimeout(function() {
 		    that.trigger('pass');
             that.removeHandlers('pass');

@@ -39,6 +39,7 @@ var putCardIntoHand = function(game, ourPlayer, card) {
     var testPlayer = function(name) {
 		var that = this;
         this.name = name;
+        this.handlers = {};
 
 		this.givePriority = function() {
             console.log('Testplayer ' + name + ' got priority');
@@ -53,7 +54,7 @@ var putCardIntoHand = function(game, ourPlayer, card) {
 	testPlayer.prototype = new player();
 
 // Tests
-/*
+
 test('Player object', function() {
 	equal((new player('test')).getName(), 'test', 'Storing and returning name');
 	equal((new player('test')).flags.drawnFromEmptyLibrary, false, 'Flags are present on creation, DFEL is false');
@@ -329,6 +330,7 @@ test('View', function() {
 
 test('View events', 2, function() {
     var game = new engine();
+    game.flags.verbose = 'VE';
     var view = game.getView();
     view.on('gameStart', function(data) {
         equal(game, this, 'View event uses correct game instance');
@@ -342,7 +344,7 @@ test('View events', 2, function() {
 
     game.start();
 });
-*/
+
 asyncTest('New putCardIntoHand', 1, function() {
     console.log('Putcards test');
     var game = new engine();
@@ -391,7 +393,6 @@ asyncTest('Playing land', function() {
     expect(1);
     console.log('Starting PlayingLand test');
     var game = new engine();
-    
     game.verbose = 'PL';
     game.stepDelay = 0;
     var johnny = new testPlayer('Johnny');
