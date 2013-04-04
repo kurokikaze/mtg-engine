@@ -41,6 +41,28 @@ var putCardIntoHand = function(game, ourPlayer, card) {
         this.name = name;
         this.handlers = {};
 
+        this.handlers = {};
+        this.deck = [];
+        this.life = 20;
+        this.landToPlay = 1;
+	    this.manapool = {
+		    'W': 0,
+		    'U': 0,
+		    'B': 0,
+		    'R': 0,
+		    'G': 0,
+		    'X': 0
+	    };
+        this.flags = {
+            'drawnFromEmptyLibrary' : false,
+	        'won' : false
+        }
+
+        this.battlefield = false;
+        this.library = false;
+        this.graveyard = false;
+        this.hand = false;
+
 		this.givePriority = function() {
             console.log('Testplayer ' + name + ' got priority');
             var stepName = this.getCurrentStep().name;
