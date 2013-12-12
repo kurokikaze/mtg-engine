@@ -5,7 +5,7 @@ Magic the Gathering engine written in JS. Kind of a hobby project, maybe will be
 
 ## Goals
 
-MtG engine with rules enforcement. Additional goals: draft engine, modality for embedding in other games (Shandalar-like Ravnika JS game? Who knows.)
+MtG engine with rules enforcement. Additional goals: draft engine, modality for embedding in other games (Shandalar-like Ravniсa JS game? Who knows.)
 
 Better understanding of Magic: the Gathering rules.
 
