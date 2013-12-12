@@ -13,4 +13,4 @@ Experience on prototyping and designing complex Javascript application.
 
 ## Does it work?
 
-Not yet.
+Not yet. Well, you can draw starting hands, put spells on the stack but that's about it.
