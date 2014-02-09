@@ -1,17 +1,19 @@
-var stack_object = function() {
-    var contents = [];
+define(['backbone'], function() {
+	var Stack = Backbone.Model.extend({
+		contents: [],
+		pop: function() {
+			return this.contents.pop();
+		},
 
-    this.pop = function() {
-        var last_spell = contents.pop();
-        return last_spell;
-    }
+		put: function(spell) {
+			this.contents.push(spell);
+		},
 
-    this.put = function(spell) {
-        contents.push(spell);
-    }
-
-    this.getContents = function() {
-        return contents;
-    }
-}
+		getContents: function() {
+			return contents;
+		}
+	});
+	
+	return Stack;
+});
 

@@ -1,6 +1,13 @@
-require(['models/mtg-engine']);
+require.config({
+  'paths': {
+    'jquery': 'libraries/jquery',
+    'underscore': 'libraries/underscore',
+    'backbone': 'libraries/backbone',
+    'engine': 'models/mtg-engine'
+  }
+});
 
-$(function(){
-	window.game = new engine();
-	window.game.start();
+require(['engine'], function(Engine) {	
+	game = new Engine();
+	game.start();
 });
