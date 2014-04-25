@@ -1,7 +1,7 @@
 /*
  * Player. There can be more than two
  */
-define(['backbone'], function() {
+define(function() {
 	var Player = Backbone.Model.extend({
 		name: false,
 		getName: function() { 

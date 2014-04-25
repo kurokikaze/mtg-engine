@@ -1,4 +1,4 @@
-define(['backbone'], function() {
+define(function() {
 	var Stack = Backbone.Model.extend({
 		contents: [],
 		pop: function() {

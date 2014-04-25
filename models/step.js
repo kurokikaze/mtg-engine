@@ -1,4 +1,4 @@
-define(['backbone'], function(){
+define([], function(){
 	var Step = Backbone.Model.extend({
 		name: '',
 		mandate_actions: [],

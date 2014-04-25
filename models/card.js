@@ -1,3 +1,47 @@
+var card = Backbone.Model.extend({
+    location: 'library',
+    image: '',
+    owner: false,
+    types: [],
+    subtypes: [],
+    tapped: false,
+    game: false,
+    cost: {
+        'W': 0,
+        'U': 0,
+        'B': 0,
+        'R': 0,
+        'G': 0,
+        'C': 0,
+        'X': false
+    },
+    initialize: function(img, name, type) {
+        this.img = img;
+        this.name = name;
+        this.type = type;
+    },
+    setManaCost: function(new_cost) {
+        if (new_cost.W) this.cost.W = new_cost.W;
+        if (new_cost.U) this.cost.U = new_cost.U;
+        if (new_cost.B) this.cost.B = new_cost.B;
+        if (new_cost.R) this.cost.R = new_cost.R;
+        if (new_cost.G) this.cost.G = new_cost.G;
+        if (new_cost.C) this.cost.C = new_cost.C;
+    },
+    setOwner: function(owner) {
+        this.owner = owner;
+    },
+    setGame: function(game) {
+        this.game = game;
+    },
+    setTypes: function(types) {
+        this.types = types.split(' ');
+    }
+    getTypes: function() {
+        return this.types;
+    }
+    
+})
 var card = function(img, name, type) {
     var location = 'library';
     var image = img;

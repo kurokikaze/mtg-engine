@@ -1,12 +1,10 @@
-define([
-	'jquery',
-	'underscore',
-	'backbone',
-	'models/view',
-	'models/step',
-	'models/player',
-	'models/stack',
-], function(_$, _u, _b, View, Step, Player, Stack){
+require([
+	'/models/View.js',
+	'/models/step.js',
+	'/models/player.js',
+	'/models/stack.js',
+    '/models/zone.js',
+], function(View, Step, Player, Stack){
 	Engine = Backbone.Model.extend({
 		steps: [],
 		handlers: [],
@@ -28,6 +26,7 @@ define([
 				console.log(this.verbose + ' ' + text);
 			}
 		},
+        // Создаём фазы хода
 		createSteps: function() {
 			this.steps.push(new Step('Untap'));
 			this.steps.push(new Step('Upkeep'));
@@ -42,6 +41,7 @@ define([
 			this.steps.push(new Step('End'));
 			this.steps.push(new Step('Cleanup'));
 		},
+        // Проверяем State-Based Actions. Здесь игра может внезапно закончиться (для одного игрока либо для всех).
 		checkSBA: function() {
 			this.log('Checking state-based actions');
 			for (var player_id in this.players) {
@@ -67,9 +67,11 @@ define([
 				this.log('SBA checked')
 			}
 		},
+        // Получаем текущую фазу хода
 		getCurrentStep: function() {
 			return this.steps[this.currentStep];
 		},
+        // Сдаться. Это немедленно выводит игрока из игры. Это действие *не должно* использовать ни стек, ни SBA.
 		concede: function(player) {
 			player.flags['lost'] = true;
 			if (this.players.length == 2) {
@@ -166,6 +168,7 @@ define([
 				this.trigger('turnStart');
 			});
 		},
+        // Создаём игровые зоны
 		createZones: function() {
 			var battlefield = new zone('battlefield', false, false);
 			battlefield.setGame(this);
@@ -173,6 +176,7 @@ define([
 			this.battlefield = battlefield;
 			var exile = [];
 		},
+        // Регистрируем колоду для участия в игре (нужно то же самое для сайдборда)
 		registerDeck: function(deck, player) {
 			for (var card_id in deck) {
 				if (deck.hasOwnProperty(card_id)) {
@@ -185,6 +189,7 @@ define([
 		getPlayers: function() {
 			return this.players;
 		},
+        // Добавляем игрока к текущей игре
 		addPlayer: function(new_player) {
 			// Storing reference to battlefield
 			new_player.setBattlefield(this.battlefield);
