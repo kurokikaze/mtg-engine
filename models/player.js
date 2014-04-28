@@ -1,7 +1,7 @@
 /*
  * Player. There can be more than two
  */
-define(function() {
+define(['/models/card.js'], function(Card) {
 	var Player = Backbone.Model.extend({
 		name: false,
 		getName: function() { 
@@ -53,8 +53,8 @@ define(function() {
 			return (this.manapool[color] >= amount);
 		},
 		owns: function(tested_card) {
-			if (tested_card instanceof card) {
-				return (tested_card.getOwner() == this);
+			if (tested_card instanceof Card) {
+				return (tested_card.get('owner') == this);
 			}
 		},
 		playLand: function(card) {
