@@ -1,28 +1,30 @@
-// Utility functions
-
-var getCoupon = function() {
-	var coupon = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=9769&type=card', 'Ashnod`s Coupon', 'Artifact')
-	return coupon;
-}
-
-var getBear = function() {
-	var bear = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=9769&type=card', 'Grizzly Bears', 'Creature');
-	bear.setManaCost({'G':1, 'C':1});
-	return bear;
-}
-
-var getIsland = function() {
-    var island = new card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=177737&type=card', 'Island', 'Land');
-    island.setSubtypes('Island');
-    return island;
-}
 require([
 	'/models/View.js',
 	'/models/step.js',
 	'/models/player.js',
+	'/models/card.js',
 	'/models/zone.js',
 	'/models/stack.js',
-], function(View, Step, Player, Zone, Stack){
+], function(View, Step, Player, Card, Zone, Stack){
+// Utility functions
+
+    var getCoupon = function() {
+        var coupon = new Card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=9769&type=card', 'Ashnod`s Coupon', 'Artifact')
+        return coupon;
+    }
+
+    var getBear = function() {
+        var bear = new Card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=9769&type=card', 'Grizzly Bears', 'Creature');
+        bear.setManaCost({'G':1, 'C':1});
+        return bear;
+    }
+
+    var getIsland = function() {
+        var island = new Card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=177737&type=card', 'Island', 'Land');
+        island.setSubtypes('Island');
+        return island;
+    }
+
     var putCardIntoHand = function(game, ourPlayer, card) {
         card.setOwner(ourPlayer);
         game.on('gameStart', function() {
@@ -111,17 +113,17 @@ require([
         equal(graveyard.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
         var johnny = new Player('Johnny');
         var bear = getBear();
-        bear.setOwner(johnny);
+        bear.set('owner', johnny);
         equal(johnny.owns(bear), true, 'Checking ownership on own cards work');
         var spike = new Player('Spike');
         var other_bear = getBear();
-        other_bear.setOwner(spike);
+        other_bear.set('owner', spike);
         equal(johnny.owns(other_bear), false, 'Checking ownership on another player cards work')
     });
 
     test('Card object', function() {
         var test_card = getBear();
-        equal(test_card.getName(), 'Grizzly Bears', 'Card name is stored and retrieved');
+        equal(test_card.get('name'), 'Grizzly Bears', 'Card name is stored and retrieved');
         equal(test_card.getManaCost().W, 0, 'White mana cost is stored and retrieved');
         equal(test_card.getManaCost().U, 0, 'Blue mana cost is stored and retrieved');
         equal(test_card.getManaCost().B, 0, 'Black mana cost is stored and retrieved');
@@ -136,13 +138,13 @@ require([
         var johnny = new Player('Johnny');
         var johnny_library = new Zone('library', true, true);
         johnny.setLibrary(johnny_library);
-        test_card.setOwner(johnny);
+        test_card.set('owner', johnny);
         test_card.goLibrary();
         equal(johnny_library.contents.length, 1, 'Card goes to its owner library');	
         var johnny = new Player('Johnny');
         var johnny_graveyard = new Zone('graveyard', true, true);
         johnny.setGraveyard(johnny_graveyard);
-        test_card.setOwner(johnny);
+        test_card.set('owner', johnny);
         test_card.goGraveyard();
         equal(johnny_graveyard.contents.length, 1, 'Card goes to its owner graveyard');
         var test_card = getBear();
