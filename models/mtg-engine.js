@@ -1,11 +1,11 @@
-require([
+define([
 	'/models/View.js',
 	'/models/step.js',
 	'/models/player.js',
 	'/models/stack.js',
     '/models/zone.js',
-], function(View, Step, Player, Stack){
-	Engine = Backbone.Model.extend({
+], function(View, Step, Player, Stack) {
+	var Engine = Backbone.Model.extend({
 		steps: [],
 		handlers: [],
 		currentStep: 0,
