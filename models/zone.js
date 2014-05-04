@@ -1,24 +1,28 @@
 define(function() {
     var Zone = Backbone.Model.extend({
-        name: '',
-        owner: false,
+		defaults: {
+			name: '',
+			ordered: false,
+			owner: false,
+		},
         game: false,
-        contents: [],
-        initialize: function(name) {
-            this.name = name;
+        initialize: function(name, ordered) {
+            this.set('name', name);
+			this.set('ordered', ordered);
+			this.set('contents', []);
         },
         place: function(card, mode) {
             switch (mode) {
                 case 'bottom':
-                    this.contents.push(card);
+                    this.attributes.contents.push(card);
                     break;
                 case 'shuffle': // shuffle
-                    this.contents.push(card);
-                    this.contents.shuffle();
+                    this.attributes.contents.push(card);
+                    this.attributes.contents.shuffle();
 
                     break;
                 default: // 'top'
-                    this.contents.unshift(card);
+                    this.attributes.contents.unshift(card);
             }
 
             // Right now we have tests relying on interactions between cards and zones 
@@ -31,10 +35,10 @@ define(function() {
              this.game = engineInstance;
         },
         setOwner: function(owner) {
-            this.owner = owner;
+            this.set('owner', owner);
         },
         getName: function() {
-            return this.name;
+            return this.get('name');
         }
 
     });

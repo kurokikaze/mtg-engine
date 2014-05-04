@@ -1,12 +1,14 @@
 define(function(){
     var Card = Backbone.Model.extend({
-        location: 'library',
-        image: '',
-        owner: false,
-        types: [],
-        subtypes: [],
-        tapped: false,
-        game: false,
+		defaults: {
+			location: 'library',
+			image: '',
+			owner: false,
+			types: [],
+			subtypes: [],
+			tapped: false,
+			game: false,
+		},
         cost: {
             'W': 0,
             'U': 0,
@@ -16,9 +18,9 @@ define(function(){
             'C': 0,
             'X': false
         },
-        constructor: function(img, name, type) {
-            this.img = img;
-            this.name = name;
+        initialize: function(img, name, type) {
+            this.set('img', img);
+            this.set('name', name);
             this.setTypes(type);
         },
         setManaCost: function(new_cost) {
@@ -42,18 +44,18 @@ define(function(){
         setSubtypes: function(subtypes) {
             this.subtypes = subtypes.split(' ');
         },
-        hasSubType: function(subtype) {
+        hasSubtype: function(subtype) {
             var result = _.find(this.subtypes, function(el) { return el == subtype});
             return !!result;
         },
         goLibrary: function(mode) {
             this.set('location', 'library');
-            this.owner.library.place(that, mode);
+            this.get('owner').library.place(this, mode);
         },
 
         goGraveyard: function(mode) {
             this.set('location', 'graveyard');
-            this.owner.graveyard.place(that, mode);
+            this.get('owner').graveyard.place(this, mode);
         },
 
         goBattlefield: function() {
@@ -67,7 +69,7 @@ define(function(){
 
                 // we're placing permanent on the battlefield,
                 // but mark the card as placed there
-                this.owner.battlefield.place(card_permanent);
+                this.get('owner').battlefield.place(card_permanent);
             }
         }
 

@@ -18,6 +18,7 @@ require([
         bear.setManaCost({'G':1, 'C':1});
         return bear;
     }
+	window.getBear = getBear;
 
     var getIsland = function() {
         var island = new Card('http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=177737&type=card', 'Island', 'Land');
@@ -99,18 +100,18 @@ require([
         var spike = new Player('Spike');
         var hand = new Zone('test_hand', true, true);
         spike.setHand(hand);
-        equal(spike.hand.getName(), 'test_hand', 'Saving zone as hand works');
-        equal(hand.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
+        equal(spike.hand.get('name'), 'test_hand', 'Saving zone as hand works');
+        equal(hand.get('owner').getName(), 'Spike', 'Setting owner of zone when saving works');
         var spike = new Player('Spike');
         var library = new Zone('test_library', true, true);
         spike.setLibrary(library);
-        equal(spike.library.getName(), 'test_library', 'Saving zone as library works');
-        equal(library.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
+        equal(spike.library.get('name'), 'test_library', 'Saving zone as library works');
+        equal(library.get('owner').getName(), 'Spike', 'Setting owner of zone when saving works');
         var spike = new Player('Spike');
         var graveyard = new Zone('test_graveyard', true, true);
         spike.setGraveyard(graveyard);
-        equal(spike.graveyard.getName(), 'test_graveyard', 'Saving zone as graveyard works');
-        equal(graveyard.owner.getName(), 'Spike', 'Setting owner of zone when saving works');
+        equal(spike.graveyard.get('name'), 'test_graveyard', 'Saving zone as graveyard works');
+        equal(graveyard.get('owner').getName(), 'Spike', 'Setting owner of zone when saving works');
         var johnny = new Player('Johnny');
         var bear = getBear();
         bear.set('owner', johnny);
@@ -132,21 +133,21 @@ require([
         equal(test_card.getManaCost().C, 1, 'Colorless mana cost is stored and retrieved');
         var test_card = getBear();
         var johnny = new Player('Johnny');
-        test_card.setOwner(johnny);
-        equal(test_card.getOwner(), johnny, 'Owner is stored and retrieved correctly');
+        test_card.set('owner', johnny);
+        equal(test_card.get('owner'), johnny, 'Owner is stored and retrieved correctly');
         var test_card = getBear();
         var johnny = new Player('Johnny');
         var johnny_library = new Zone('library', true, true);
         johnny.setLibrary(johnny_library);
         test_card.set('owner', johnny);
         test_card.goLibrary();
-        equal(johnny_library.contents.length, 1, 'Card goes to its owner library');	
+        equal(johnny_library.get('contents').length, 1, 'Card goes to its owner library');	
         var johnny = new Player('Johnny');
         var johnny_graveyard = new Zone('graveyard', true, true);
         johnny.setGraveyard(johnny_graveyard);
         test_card.set('owner', johnny);
         test_card.goGraveyard();
-        equal(johnny_graveyard.contents.length, 1, 'Card goes to its owner graveyard');
+        equal(johnny_graveyard.get('contents').length, 1, 'Card goes to its owner graveyard');
         var test_card = getBear();
         test_card.setTypes('Artifact Creature');
         equal(test_card.hasType('Artifact'), true, 'Card type is saved and retrieved (1)');
@@ -161,7 +162,7 @@ require([
 
     test('Stack object', function() {
         var test_card = getBear();
-        var test_spell = new spell(test_card);
+        var test_spell = new Spell(test_card);
         var stack = new stack_object;
         equal(stack.getContents().length, 0, 'Stack is empty on creation');
         stack.put(test_spell);
@@ -199,11 +200,11 @@ require([
     });
 
     test('Zone object', function() {
-        equal((new Zone('test', true, true)).getName(), 'test', 'Storing and returning name');
+        equal((new Zone('test', true, true)).get('name'), 'test', 'Storing and returning name');
         var johnny = new Player('Johnny');
         var hand = new Zone('hand', true, true);
-        hand.setOwner(johnny);
-        equal(hand.owner.getName(), 'Johnny', 'Setting zone owner works');
+        hand.set('owner', johnny);
+        equal(hand.get('owner').getName(), 'Johnny', 'Setting zone owner works');
     });
 
 
@@ -234,7 +235,7 @@ require([
         var our_card = getBear();
         var johnny = new Player('Johnny');
         our_card.setOwner(johnny);
-        var our_spell = new spell(our_card);
+        var our_spell = new Spell(our_card);
         equal(our_spell.representedBy, our_card, 'Spell is represented by right card');
         equal(our_spell.getOwner(), johnny, 'Spell owner is passed correctly');
     });
