@@ -5,7 +5,10 @@ require([
 	'/models/card.js',
 	'/models/zone.js',
 	'/models/stack.js',
-], function(View, Step, Player, Card, Zone, Stack){
+	'/models/spell.js',
+	'/models/permanent.js',
+	'/models/mtg-engine.js',
+], function(View, Step, Player, Card, Zone, Stack, Spell, Permanent, Engine){
 // Utility functions
 
     var getCoupon = function() {
@@ -88,9 +91,9 @@ require([
 
     test('Player object', function() {
         equal((new Player('test')).getName(), 'test', 'Storing and returning name');
-        equal((new Player('test')).flags.drawnFromEmptyLibrary, false, 'Flags are present on creation, DFEL is false');
-        equal((new Player('test')).flags.won, false, 'Winning flag is present and set to false');
-        equal((new Player('test')).life, 20, 'Player starts at 20 life');
+        equal((new Player('test')).get('flags').drawnFromEmptyLibrary, false, 'Flags are present on creation, DFEL is false');
+        equal((new Player('test')).get('flags').won, false, 'Winning flag is present and set to false');
+        equal((new Player('test')).get('life'), 20, 'Player starts at 20 life');
         var johnny = new Player('Johnny');
         johnny.addMana('R', 2);
         ok(johnny.hasMana('R', 2), 'Can add/check mana in pool');
@@ -163,7 +166,7 @@ require([
     test('Stack object', function() {
         var test_card = getBear();
         var test_spell = new Spell(test_card);
-        var stack = new stack_object;
+        var stack = new Stack();
         equal(stack.getContents().length, 0, 'Stack is empty on creation');
         stack.put(test_spell);
         equal(stack.getContents().length, 1, 'The spell is on stack');
@@ -180,7 +183,7 @@ require([
             ok(true, 'Player event is passed through');
         });
         spike.trigger('test');
-        var game = new engine();
+        var game = new Engine();
         var spike = new testPlayer('Spike');
         game.addPlayer(spike);
         game.addPlayer(new testPlayer('Mike'));
@@ -210,23 +213,23 @@ require([
 
     test('Permanent object', function() {
         var our_card = getBear();
-        var our_permanent = new permanent(our_card);
+        var our_permanent = new Permanent(our_card);
         equal(our_permanent.getName(), 'Grizzly Bears', 'Name of card used as name of permanent');
-        var our_token = new permanent({
+        var our_token = new Permanent({
             'name': 'Centaur',
             'power': 2,
             'toughness': 2
         });
-        equal(our_token.getName(), 'Centaur' , 'Name of token is stored and passed correctly.');
+        equal(our_token.get('name'), 'Centaur' , 'Name of token is stored and passed correctly.');
         var our_card = getCoupon();
-        var our_permanent = new permanent(our_card);
+        var our_permanent = new Permanent(our_card);
         equal(our_permanent.isTapped(), false, 'Permanent is created untapped');
         our_permanent.tap();
         equal(our_permanent.isTapped(), true, 'Permanent can be tapped');
         our_permanent.untap();
         equal(our_permanent.isTapped(), false, 'Permanent can be untapped');
         var our_card = getBear();
-        var our_permanent = new permanent(our_card);
+        var our_permanent = new Permanent(our_card);
         equal(our_permanent.getManaCost().G, 1, 'Card cost is used as permanent cost')
     });
 
@@ -234,9 +237,9 @@ require([
     test('Spell object', function() {
         var our_card = getBear();
         var johnny = new Player('Johnny');
-        our_card.setOwner(johnny);
+        our_card.set('owner', johnny);
         var our_spell = new Spell(our_card);
-        equal(our_spell.representedBy, our_card, 'Spell is represented by right card');
+        equal(our_spell.get('representedBy'), our_card, 'Spell is represented by right card');
         equal(our_spell.getOwner(), johnny, 'Spell owner is passed correctly');
     });
 
@@ -260,10 +263,10 @@ require([
         // Draw a card
         johnny.draw();
         // Test that Johnny has drawn our card
-        equal(johnny.hand.contents.length, 1, 'Has a card in hand after drawing');
-        equal(johnny.library.contents.length, 0, 'Has no cards in library after drawing');
-        equal(johnny.hand.contents[0].getName(), 'Ashnod`s Coupon', 'Drawn card is Ashnod`s Coupon');
-        equal(johnny.flags.drawnFromEmptyLibrary, false, 'Johnny is not marked as having drawn card from empty library');
+        equal(johnny.hand.get('contents').length, 1, 'Has a card in hand after drawing');
+        equal(johnny.library.get('contents').length, 0, 'Has no cards in library after drawing');
+        equal(johnny.hand.get('contents')[0].get('name'), 'Ashnod`s Coupon', 'Drawn card is Ashnod`s Coupon');
+        equal(johnny.get('flags').drawnFromEmptyLibrary, false, 'Johnny is not marked as having drawn card from empty library');
     });
 
     test('Registering deck', function() {
@@ -271,8 +274,8 @@ require([
         var bear = getBear();
         var johnnys_deck = [];
         johnnys_deck.push(bear);
-        johnny.setDeck(johnnys_deck);
-        var game = new engine();
+        johnny.set('deck', johnnys_deck);
+        var game = new Engine();
         game.addPlayer(johnny);
         equal(bear.getOwner().getName(), 'Johnny', 'Cards in registered deck are marked as owned by right player');
     });
@@ -291,13 +294,13 @@ require([
         // Draw a card
         johnny.draw();
         // Test that Johnny has drawn our card
-        equal(johnny.hand.contents.length, 0, 'Has no cards in hand after drawing');
-        equal(johnny.library.contents.length, 0, 'Has no cards in library after drawing');
-        equal(johnny.flags.drawnFromEmptyLibrary, true, 'Johnny is marked as having drawn card from empty library');
+        equal(johnny.hand.get('contents').length, 0, 'Has no cards in hand after drawing');
+        equal(johnny.library.get('contents').length, 0, 'Has no cards in library after drawing');
+        equal(johnny.get('flags').drawnFromEmptyLibrary, true, 'Johnny is marked as having drawn card from empty library');
     });
 
     test('Engine events', 1, function() {
-        var game = new engine();
+        var game = new Engine();
         game.on('test', function(data) {
             equal(data, 'Test', 'Data is passed to event handler');
         });
@@ -333,7 +336,7 @@ require([
         timmy.setLibrary(new Zone('Timmy`s library', true, true));
         timmy.setHand(new Zone('Timmy`s hand', false, true));
 
-        var test_game = new engine();
+        var test_game = new Engine();
         test_game.verbose = 'APNAP';
         test_game.flags.canDrawFromEmptyLibrary = true;
         //
@@ -354,13 +357,13 @@ require([
     });
 
     test('View', function() {
-        var game = new engine();
+        var game = new Engine();
         var view = game.getView();
         equal(game, view.getGame(), 'View returns correct game instance');
     });
 
     test('View events', 2, function() {
-        var game = new engine();
+        var game = new Engine();
         game.flags.verbose = 'VE';
         var view = game.getView();
         view.on('gameStart', function(data) {
@@ -378,7 +381,7 @@ require([
 
     asyncTest('New putCardIntoHand', 1, function() {
         console.log('Putcards test');
-        var game = new engine();
+        var game = new Engine();
         game.verbose = 'PC';
         var johnny = new Player('Johnny');
         game.addPlayer(johnny);
@@ -397,7 +400,7 @@ require([
     asyncTest('Turn Structure', function() {
         console.log('Starting Turn Structure test')
         expect(1);
-        var game = new engine();
+        var game = new Engine();
         game.verbose = 'TS';
         game.stepDelay = 0;
         var johnny = new testPlayer('Jackie');
@@ -423,7 +426,7 @@ require([
     asyncTest('Playing land', function() {
         expect(1);
         console.log('Starting PlayingLand test');
-        var game = new engine();
+        var game = new Engine();
         game.verbose = 'PL';
         game.stepDelay = 0;
         var johnny = new testPlayer('Johnny');
@@ -431,7 +434,7 @@ require([
         johnnys_deck.push(getIsland());
         johnnys_deck.push(getIsland());
         johnnys_deck.push(getIsland());
-        johnny.setDeck(johnnys_deck);
+        johnny.set('deck', johnnys_deck);
         johnny.on('step#Draw', function() {
             console.log('Entering Draw step, ' + johnny.library.contents.length + ' cards in library');
         });

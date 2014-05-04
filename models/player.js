@@ -3,12 +3,18 @@
  */
 define(['/models/card.js'], function(Card) {
 	var Player = Backbone.Model.extend({
-		name: false,
 		getName: function() { 
-			return this.name; 
+			return this.get('name'); 
 		},
-		deck: [],
-		life: 20,
+		defaults: {
+			deck: false,
+			name: false,
+			life: 20,
+			flags: {
+				'drawnFromEmptyLibrary' : false,
+				'won' : false
+			}
+		},
 		landToPlay: 1,
 		manapool: {
 			'W': 0,
@@ -18,16 +24,17 @@ define(['/models/card.js'], function(Card) {
 			'G': 0,
 			'X': 0
 		},
-		flags: {
-			'drawnFromEmptyLibrary' : false,
-			'won' : false
-		},
 		battlefield: false,
 		library: false,
 		graveyard: false,
 		hand: false,
 		initialize: function(name) {
-			this.name = name;
+			this.set('name', name);
+			this.set('life', 20);
+			this.set('flags', {
+				'drawnFromEmptyLibrary' : false,
+				'won' : false
+			});
 			//return this;
 		},
 		setBattlefield: function(battlefield) {
@@ -63,6 +70,17 @@ define(['/models/card.js'], function(Card) {
 				card.hasType('Land')) {
 				this.game.playLand(card);
 			}
+		},
+		draw: function() {
+			if (this.library) {
+				var card = this.library.draw();
+			}
+			if (!card) {
+				this.attributes.flags.drawnFromEmptyLibrary = true;
+			} else {
+				this.hand.place(card);
+			}
+			return card;
 		},
 		concede: function() {
 			console.log('$$$ Conceding');

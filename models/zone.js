@@ -39,7 +39,12 @@ define(function() {
         },
         getName: function() {
             return this.get('name');
-        }
+        },
+		draw: function() {
+			if (this.get('contents').length > 0) {
+				return this.attributes.contents.shift();
+			}
+		}
 
     });
     
