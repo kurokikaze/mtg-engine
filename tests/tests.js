@@ -30,7 +30,7 @@ require([
     }
 
     var putCardIntoHand = function(game, ourPlayer, card) {
-        card.setOwner(ourPlayer);
+        card.set('owner', ourPlayer);
         game.on('gameStart', function() {
             var targetPlayer = false;
             var gamePlayers = this.getPlayers();
@@ -48,44 +48,16 @@ require([
         });
     }
 
-        var testPlayer = function(name) {
-            var that = this;
-            this.name = name;
-            this.handlers = {};
-
-            this.handlers = {};
-            this.deck = [];
-            this.life = 20;
-            this.landToPlay = 1;
-            this.manapool = {
-                'W': 0,
-                'U': 0,
-                'B': 0,
-                'R': 0,
-                'G': 0,
-                'X': 0
-            };
-            this.flags = {
-                'drawnFromEmptyLibrary' : false,
-                'won' : false
-            }
-
-            this.battlefield = false;
-            this.library = false;
-            this.graveyard = false;
-            this.hand = false;
-
-            this.givePriority = function() {
+        var testPlayer = Player.extend({
+            givePriority: function() {
                 console.log('Testplayer ' + name + ' got priority');
                 var stepName = this.getCurrentStep().name;
-                that.game = this; // Contexts...
-                that.trigger('step#' + stepName, this);
+                //this.game = this; // Contexts...
+                this.trigger('step#' + stepName, this);
                 //console.log('Test player ' + name + ' got priority');
-                that.trigger('pass');
+                this.trigger('pass');
             }
-        };
-
-        testPlayer.prototype = new Player();
+        });
 
     // Tests
 
@@ -277,7 +249,7 @@ require([
         johnny.set('deck', johnnys_deck);
         var game = new Engine();
         game.addPlayer(johnny);
-        equal(bear.getOwner().getName(), 'Johnny', 'Cards in registered deck are marked as owned by right player');
+        equal(bear.get('owner').get('name'), 'Johnny', 'Cards in registered deck are marked as owned by right player');
     });
 
     test('Drawing from empty library', function() {
@@ -315,16 +287,17 @@ require([
 
         var teststring = '';
 
-        var priority_player = function(phrase) {
-            var that = this;
-            this.givePriority = function() {
+        var priority_player = Player.extend({
+			initialize: function(phrase) {
+				this.phrase = phrase;
+				Player.prototype.initialize.call(this);
+			},
+            givePriority: function() {
                 console.log('Test player got priority');
                 teststring = teststring + phrase;
                 that.trigger('pass');
             }
-        };
-
-        priority_player.prototype = new Player();
+        });
 
         // Here's our player 1
         var johnny = new priority_player('AP');

@@ -4,7 +4,7 @@ define([
 	'/models/player.js',
 	'/models/stack.js',
     '/models/zone.js',
-], function(View, Step, Player, Stack) {
+], function(View, Step, Player, Stack, Zone) {
 	var Engine = Backbone.Model.extend({
 		steps: [],
 		handlers: [],
@@ -28,35 +28,40 @@ define([
 		},
         // Создаём фазы хода
 		createSteps: function() {
-			this.steps.push(new Step('Untap'));
-			this.steps.push(new Step('Upkeep'));
-			this.steps.push(new Step('Draw').addAction(function() { mtg.currentPlayer().draw();}));
-			this.steps.push(new Step('Precombat Main').setMain(true));
-			this.steps.push(new Step('Beginning of Combat'));
-			this.steps.push(new Step('Declare Attackers'));
-			this.steps.push(new Step('Declare Blockers'));
-			this.steps.push(new Step('Combat Damage'));
-			this.steps.push(new Step('End of Combat'));
-			this.steps.push(new Step('Post-Combat Main').setMain(true));
-			this.steps.push(new Step('End'));
-			this.steps.push(new Step('Cleanup'));
+			this.steps.push(new Step('Untap', this));
+			this.steps.push(new Step('Upkeep', this));
+			this.steps.push(new Step('Draw', this).addAction(function() { 
+				this.getCurrentPlayer().draw(); 
+			}));
+			this.steps.push(new Step('Precombat Main', this).setMain(true));
+			this.steps.push(new Step('Beginning of Combat', this));
+			this.steps.push(new Step('Declare Attackers', this));
+			this.steps.push(new Step('Declare Blockers', this));
+			this.steps.push(new Step('Combat Damage', this));
+			this.steps.push(new Step('End of Combat', this));
+			this.steps.push(new Step('Post-Combat Main', this).setMain(true));
+			this.steps.push(new Step('End', this));
+			this.steps.push(new Step('Cleanup', this));
 		},
-        // Проверяем State-Based Actions. Здесь игра может внезапно закончиться (для одного игрока либо для всех).
+        getCurrentPlayer: function() {
+			return this.players[this.currentPlayer];
+		},
+		// Проверяем State-Based Actions. Здесь игра может внезапно закончиться (для одного игрока либо для всех).
 		checkSBA: function() {
 			this.log('Checking state-based actions');
 			for (var player_id in this.players) {
-				var checked_player = players[player_id];
+				var checked_player = this.players[player_id];
 				if (checked_player.life <= 0) {
-					log('player has 0 life');
+					this.log('player has 0 life');
 					checked_player.flags['lost'] = true;
 					this.trigger('player_lost', checked_player);
 				}
 				if (checked_player.flags['won'] == true) {
-					log('player has won');
+					this.log('player has won');
 					this.flags.finished = true;
 				}
 				if (checked_player.flags['drawnFromEmptyLibrary'] == true && Engine_this.flags['canDrawFromEmptyLibrary'] != true) {
-					log('Player has drawn from empty library and will be terminated');
+					this.log('Player has drawn from empty library and will be terminated');
 					this.flags.finished = true;
 					this.trigger('player_lost', checked_player);
 				}
@@ -83,19 +88,19 @@ define([
 		},
 		setModelEvents: function() {
 			this.on('player_lost', function() {
-				if (players.length <= 2) {
+				if (this.players.length <= 2) {
 					// this.trigger('finish');
-					Engine_this.flags.finished = true;
+					this.flags.finished = true;
 				}
-			});
+			}.bind(this));
 
 			this.on('stepStart', function(nextStepCallback) {
 				var end_step = function() {
 					if (!Engine_this.flags.finished) {
-						log('Step ' + steps[currentStep].name + ' ended');
+						this.log('Step ' + steps[currentStep].name + ' ended');
 						Engine_this.trigger('eos_' + steps[currentStep].name);
 						// Move to the next step
-						log('Setting timeout for new turn');
+						this.log('Setting timeout for new turn');
 						setTimeout(function() {
 							log('New step starting');
 							// we cannot trigger here w/o reworking how step system handles 
@@ -103,22 +108,22 @@ define([
 							if (nextStepCallback) {
 								nextStepCallback();
 							} else {
-								log('Current player is ' + currentPlayer + ', current step is ' + currentStep);
+								log('Current player is ' + this.currentPlayer + ', current step is ' + this.getCurrentStep());
 							}
 						}, Engine_this.stepDelay);
 					} else {
-						log('Game is finishing')
+						this.log('Game is finishing')
 						Engine_this.trigger('finish');
 					}
 				}
 				// announce beginning
-				log('Inside stepStart, currentStep is ' + currentStep);
-				Engine_this.trigger('stepStart#triggers');
-				steps[currentStep].activate();
-				log('Step ' + steps[currentStep].name + ' starting, ' + players.length + ' players total');
+				this.log('Inside stepStart, currentStep is ' + this.getCurrentStep());
+				this.trigger('stepStart#triggers');
+				this.getCurrentStep().activate();
+				this.log('Step ' + this.getCurrentStep().get('name') + ' starting, ' + this.players.length + ' players total');
 				// make necessary actions (via triggers)
 				// give players priority starting from current
-				asyncLoop(players.length, function(loop) {
+				asyncLoop(this.players.length, function(loop) {
 					this.log('Trying to give priority to player ' + loop.iteration());
 					var currentPlayer_id = loop.iteration();
 					this.players[currentPlayer_id].on('pass', function() {
@@ -138,12 +143,12 @@ define([
 		
 			this.on('turnStart', function() {
 				// asynchronously looping through steps
-				log('Preparing to run through ' + steps.length + ' steps');
+				this.log('Preparing to run through ' + this.steps.length + ' steps');
 				asyncLoop(this.steps.length, function(loop) {
 					currentStep = loop.iteration();
 					// log('Beginning step ' + currentStep);
 					this.trigger('stepStart', loop.next);
-					this.getView().trigger('stepStart', currentStep);
+					this.getView().trigger('stepStart', this.getCurrentStep());
 				}.bind(this), function(){ //
 					this.getView().trigger('turnEnd');
 					this.trigger('turnEnd');
@@ -151,7 +156,7 @@ define([
 			}.bind(this));
 
 			this.on('turnEnd', function() {
-				log('Turn has ended');
+				this.log('Turn has ended');
 				Engine_this.getView().trigger('turnEnd');
 				Engine_this.trigger('beginTurn');
 			});
@@ -160,17 +165,17 @@ define([
 			 * This is not a step, just utility function setting values for new turn
 			 */
 			this.on('beginTurn', function() {
-				currentPlayer = ((currentPlayer + 1) % (players.length));
-				for (var player_id in players) {
-					players[player_id].landsToPlay = 1;
+				this.currentPlayer = ((this.currentPlayer + 1) % (this.players.length));
+				for (var player_id in this.players) {
+					this.players[player_id].landsToPlay = 1;
 				}
 				this.getView().trigger('turnStart');
 				this.trigger('turnStart');
-			});
+			}.bind(this));
 		},
         // Создаём игровые зоны
 		createZones: function() {
-			var battlefield = new zone('battlefield', false, false);
+			var battlefield = new Zone('battlefield', false, false);
 			battlefield.setGame(this);
 			this.zones.push(battlefield);
 			this.battlefield = battlefield;
@@ -181,8 +186,8 @@ define([
 			for (var card_id in deck) {
 				if (deck.hasOwnProperty(card_id)) {
 					//this.cards.push(deck[card_id]);
-					deck[card_id].setOwner(player);
-					deck[card_id].setGame(this);
+					deck[card_id].set('owner', player);
+					deck[card_id].set('game', this);
 				}
 			}
 		},
@@ -197,28 +202,28 @@ define([
 			// Registering zones to the game
 			// This should be done differently. Player has only his deck when assigned
 			// to the game. His zones are created in this function
-			if (new_player.deck) {
-				this.registerDeck(new_player.deck, new_player);
+			if (new_player.get('deck')) {
+				this.registerDeck(new_player.get('deck'), new_player);
 			}
 
 			if (!new_player.library) {
-				log('Player ' + new_player.getName() + ' has no library declared, his deck is set as his library [' + new_player.deck.length + ' card(s)]');
-				new_player.setLibrary(new zone(new_player.getName() + '`s library', true, true));
-				new_player.library.contents = new_player.deck;
+				this.log('Player ' + new_player.getName() + ' has no library declared, his deck is set as his library [' + new_player.get('deck').length + ' card(s)]');
+				new_player.setLibrary(new Zone(new_player.getName() + '`s library', true, true));
+				new_player.library.set('contents', new_player.get('deck'));
 			}
 			new_player.library.setGame(this);
 
 			if (!new_player.hand) {
-				new_player.setHand(new zone(new_player.getName() + '`s hand', true, true));
+				new_player.setHand(new Zone(new_player.getName() + '`s hand', true, true));
 			}
 			new_player.hand.setGame(this);
 
 			if (!new_player.graveyard) {
-				new_player.setGraveyard(new zone(new_player.getName() + '`s graveyard', true, true));
+				new_player.setGraveyard(new Zone(new_player.getName() + '`s graveyard', true, true));
 			}
 			new_player.graveyard.setGame(this);
 
-			players.push(new_player);
+			this.players.push(new_player);
 			// Should fail if no deck is set
 		},
 
@@ -230,14 +235,14 @@ define([
 				var human = new ai_player();
 
 				// Create zones
-				var library = new zone('library', true, true);
-				library.setGame(Engine_this);
+				var library = new Zone('library', true, true);
+				library.setGame(this);
 				human.setLibrary(library);
-				var hand = new zone('hand', false, true);
-				hand.setGame(Engine_this);
+				var hand = new Zone('hand', false, true);
+				hand.setGame(this);
 				human.setHand(hand);
-				var graveyard = new zone('graveyard', true, false);
-				graveyard.setGame(Engine_this);
+				var graveyard = new Zone('graveyard', true, false);
+				graveyard.setGame(this);
 				human.setGraveyard(graveyard);
 
 				// Create card and put it in library
@@ -250,7 +255,7 @@ define([
 			}
 
 			this.getView().trigger('gameStart', {
-				'players': players
+				'players': this.players
 			});
 			this.trigger('gameStart'); // announce start
 			this.trigger('gameStart#triggers');
@@ -272,11 +277,15 @@ define([
 
 			this.zones = [];
 
+			this.players = [];
+			// Это должно быть действием карты
 			
-			// Это должно быть действием игрока
-			this.playLand = function(player, card) {
-				log('Player ' + player.name + ' intends to play ' + card.getName() + ' as land');
-				log('Player has ' + player.landToPlay + ' land(s) to play left this turn');
+			this.setModelEvents();
+			//return this;
+		},
+		playLand: function(player, card) {
+				this.log('Player ' + player.name + ' intends to play ' + card.getName() + ' as land');
+				this.log('Player has ' + player.landToPlay + ' land(s) to play left this turn');
 				if (card.getOwner() == player &&
 				player.landToPlay > 0 &&
 				Engine_this.getCurrentStep().isMain()
@@ -287,9 +296,6 @@ define([
 				}
 				return false;
 			}
-			
-			//return this;
-		}
 	});
 
 	// Register deck for game
